@@ -43,12 +43,18 @@ gold = 5
 inventory = [] #empty list
 
 # Monster encounter
-monster_list = ["skeleton", "zombie", "goblin"]
-monster_health_list = [ 30, 35, 20 ]
+
+# monster_name, monster_health, monster_attack_power <- Tuple
+skeleton_monster = ("skeleton", 30, 4)
+zombie_monster = ("zombie", 35, 5)
+goblin_monster = ("goblin", 20, 3)
+dragon_monster = ("dragon", 100, 10)
+
+monster_list = [ skeleton_monster, zombie_monster, goblin_monster, dragon_monster ]
 monster_index = random.randint(0, len(monster_list) - 1)
-monster = monster_list[monster_index]
-print(f"\n⚠️ You have encountered a {monster}!")
-monster_health = monster_health_list[monster_index]
+monster_name, monster_health, monster_attack_power = monster_list[monster_index]
+print(f"\n⚠️ You have encountered a {monster_name}!")
+
 
 loot_list = ["armor", "sword", "dagger", "staff", "mace", "axe"] # this is a list
 #index          0,        1,      2,        3       4      5
@@ -81,7 +87,7 @@ while True: #infinite loop
         print("Invalid action. Choose attack, dodge, or spell.")
 
     if monster_health <= 0:
-        print(f"You defeated the {monster}!")
+        print(f"You defeated the {monster_name}!")
         print("Here are the possilbe loot items:")
         
         for loot in loot_list: # loop through the list
@@ -90,16 +96,16 @@ while True: #infinite loop
         print("Rolling the dice ...")
         loot_index = random.randint(0, len(loot_list) - 1) # random index from 0 to len(loot_list) - 1
         loot_gold = random.randint(5, 20)
-        print(f"The {monster} dropped one {loot_list[loot_index]} and {loot_gold} golds. Congrats!")
+        print(f"The {monster_name} dropped one {loot_list[loot_index]} and {loot_gold} golds. Congrats!")
         inventory.append(loot_list[loot_index]) # how to add an item to the list
         gold += loot_gold # gold = gold + loot_gold
         break
     else:
         if not has_dodged: # if has_dodged == False:
             # Monster attacks back
-            hit = random.randint(1, 6) + 2
+            hit = random.randint(1, 6) + monster_attack_power
             health -= hit
-            print(f"The {monster} hits you for {hit} damage. Your health is now {health}.")
+            print(f"The {monster_name} hits you for {hit} damage. Your health is now {health}.")
 
 
 print("Congratulations, brave adventurer! You have escaped the dungeon.")
