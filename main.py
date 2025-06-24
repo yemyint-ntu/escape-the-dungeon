@@ -38,9 +38,14 @@ else:
     player_class = "Warrior"
     strength, agility, magic = 8, 4, 2
 
-health = 100
-gold = 5
-inventory = [] #empty list
+# declaring a dictionary
+player = {
+    "name": character_name,
+    "class": player_class,
+    "health": 100,
+    "gold": 5,
+    "inventory": []
+}
 
 # Monster encounter
 
@@ -52,7 +57,10 @@ dragon_monster = ("dragon", 100, 10)
 
 monster_list = [ skeleton_monster, zombie_monster, goblin_monster, dragon_monster ]
 monster_index = random.randint(0, len(monster_list) - 1)
-monster_name, monster_health, monster_attack_power = monster_list[monster_index]
+monster_name, monster_health, monster_attack_power = monster_list[monster_index] # unpacking the tuple
+# monster_name = monster_list[monster_index][0]
+# monster_health = monster_list[monster_index][1]
+# monster_attack_power = monster_list[monster_index][2]
 print(f"\n⚠️ You have encountered a {monster_name}!")
 
 
@@ -60,6 +68,11 @@ loot_list = ["armor", "sword", "dagger", "staff", "mace", "axe"] # this is a lis
 #index          0,        1,      2,        3       4      5
 
 while True: #infinite loop
+    # if player health is less than or equal to zero
+    # exit from the loop
+    if player["health"] <= 0:
+        break
+
     # print(f"\nYour Health: {health} | Skeleton Health: {monster_health}")
     action = input("Choose action: attack / dodge / spell: ").lower()
     has_dodged = False
@@ -97,17 +110,21 @@ while True: #infinite loop
         loot_index = random.randint(0, len(loot_list) - 1) # random index from 0 to len(loot_list) - 1
         loot_gold = random.randint(5, 20)
         print(f"The {monster_name} dropped one {loot_list[loot_index]} and {loot_gold} golds. Congrats!")
-        inventory.append(loot_list[loot_index]) # how to add an item to the list
-        gold += loot_gold # gold = gold + loot_gold
+        player["inventory"].append(loot_list[loot_index]) # how to add an item to the list
+        player["gold"] += loot_gold # gold = gold + loot_gold
         break
     else:
         if not has_dodged: # if has_dodged == False:
             # Monster attacks back
             hit = random.randint(1, 6) + monster_attack_power
-            health -= hit
-            print(f"The {monster_name} hits you for {hit} damage. Your health is now {health}.")
+            player["health"] -= hit
+            print(f"The {monster_name} hits you for {hit} damage. Your health is now {player["health"]}.")
 
-
-print("Congratulations, brave adventurer! You have escaped the dungeon.")
-print(f"You now have {inventory} in your inventory and {gold} golds.")
+# if player health is less than or equal to zero
+# print game over
+if player["health"] <= 0:
+    print("Game Over!!")
+else:
+    print("Congratulations, brave adventurer! You have escaped the dungeon.")
+    print(f"You now have {player["inventory"]} in your inventory and {player["gold"]} golds.")
 # End of the game
