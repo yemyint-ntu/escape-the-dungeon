@@ -17,7 +17,7 @@ print("Welcome to Escape the Dungeon, adventurer", character_name)
 print("Choose your class:")
 print("1. Warrior (High Strength)")
 print("2. Rogue (High Agility)")
-print("3. Mage (High Magic)")
+print("3. Mage (Magic User)")
 
 # accept input from the player using the following prompt
 # "Enter 1, 2, or 3: "
@@ -26,25 +26,31 @@ class_choice = input("Enter 1, 2, or 3: ")
 
 if class_choice == "1":
     player_class = "Warrior"
-    strength, agility, magic = 8, 4, 2
+    strength, agility, mind = 8, 4, 2
 elif class_choice == "2":
     player_class = "Rogue"
-    strength, agility, magic = 4, 8, 2
+    strength, agility, mind = 4, 8, 2
 elif class_choice == "3":
     player_class = "Mage"
-    strength, agility, magic = 2, 4, 8
+    strength, agility, mind = 2, 4, 8
 else:
     print("Invalid choice, defaulting to Warrior.")
     player_class = "Warrior"
-    strength, agility, magic = 8, 4, 2
+    strength, agility, mind = 8, 4, 2
 
 # declaring a dictionary
 player = {
     "name": character_name,
     "class": player_class,
-    "health": 100,
+    "attributes": {
+        "strength": strength,
+        "agility": agility,
+        "mind": mind,
+    },
+    "max_health": 5 * strength,  # health is 5 times the strength
+    "current_health": 5 * strength,  # current health is also 5 times the strength
     "gold": 5,
-    "inventory": []
+    "inventory": [],
 }
 
 # Monster encounter
@@ -70,7 +76,7 @@ loot_list = ["armor", "sword", "dagger", "staff", "mace", "axe"] # this is a lis
 while True: #infinite loop
     # if player health is less than or equal to zero
     # exit from the loop
-    if player["health"] <= 0:
+    if player["current_health"] <= 0:
         break
 
     # print(f"\nYour Health: {health} | Skeleton Health: {monster_health}")
@@ -91,7 +97,7 @@ while True: #infinite loop
             print("You tried to dodge but failed!")
 
     elif action == 'spell':
-        if magic >= 6:
+        if mind >= 6:
             print("You cast a powerful fireball!")
             monster_health = 0
         else:
@@ -117,12 +123,12 @@ while True: #infinite loop
         if not has_dodged: # if has_dodged == False:
             # Monster attacks back
             hit = random.randint(1, 6) + monster_attack_power
-            player["health"] -= hit
-            print(f"The {monster_name} hits you for {hit} damage. Your health is now {player["health"]}.")
+            player["current_health"] -= hit
+            print(f"The {monster_name} hits you for {hit} damage. Your health is now {player["current_health"]}.")
 
 # if player health is less than or equal to zero
 # print game over
-if player["health"] <= 0:
+if player["current_health"] <= 0:
     print("Game Over!!")
 else:
     print("Congratulations, brave adventurer! You have escaped the dungeon.")
