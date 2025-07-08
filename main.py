@@ -1,5 +1,11 @@
 import random
 
+def dice_roll(sides_per_die, number_of_dice=1):
+    sum = 0
+    for _ in range(number_of_dice): # _ means the value is not used
+        sum += random.randint(1, sides_per_die)
+    return sum        
+
 # accept input from the player using the following prompt:
 # "What is your name, brave adventurer? " 
 # Store the user's name in a variable called character_name
@@ -83,13 +89,13 @@ while True: #infinite loop
     action = input("Choose action: attack / dodge / spell: ").lower()
     has_dodged = False
     if action == 'attack':
-        damage = strength + random.randint(1, 6)
+        damage = strength + dice_roll(sides_per_die=6)  # strength + dice_roll(1, 6)
         monster_health -= damage
         print(f"You swing your weapon and deal {damage} damage!")
 
     elif action == 'dodge':
         dodge_chance = agility * 5  # percentage
-        if random.randint(1, 100) <= dodge_chance:
+        if dice_roll(sides_per_die=100) <= dodge_chance:
             has_dodged = True
             print("You dodged the attack!")
         else:
@@ -114,7 +120,7 @@ while True: #infinite loop
         
         print("Rolling the dice ...")
         loot_index = random.randint(0, len(loot_list) - 1) # random index from 0 to len(loot_list) - 1
-        loot_gold = random.randint(5, 20)
+        loot_gold = dice_roll(number_of_dice=5, sides_per_die=4)
         print(f"The {monster_name} dropped one {loot_list[loot_index]} and {loot_gold} golds. Congrats!")
         player["inventory"].append(loot_list[loot_index]) # how to add an item to the list
         player["gold"] += loot_gold # gold = gold + loot_gold
@@ -122,7 +128,7 @@ while True: #infinite loop
     else:
         if not has_dodged: # if has_dodged == False:
             # Monster attacks back
-            hit = random.randint(1, 6) + monster_attack_power
+            hit = dice_roll(sides_per_die=6) + monster_attack_power
             player["current_health"] -= hit
             print(f"The {monster_name} hits you for {hit} damage. Your health is now {player["current_health"]}.")
 
