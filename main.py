@@ -1,10 +1,19 @@
 import random
 
-def dice_roll(sides_per_die, number_of_dice=1):
+def dice_roll(sides_per_die, number_of_dice=1): # function definition
     sum = 0
     for _ in range(number_of_dice): # _ means the value is not used
         sum += random.randint(1, sides_per_die)
-    return sum        
+    return sum
+
+def loot_roll(loot_list):
+    number_of_loot_items = dice_roll(sides_per_die=3)  # roll a die to determine number of loot items
+    looted_items = []
+    # write a for loop number_of_loot_items times
+        # in each iteration, select a random item from loot_list
+        # and append it to looted_items
+    # return the looted_items list
+
 
 # accept input from the player using the following prompt:
 # "What is your name, brave adventurer? " 
@@ -68,8 +77,8 @@ goblin_monster = ("goblin", 20, 3)
 dragon_monster = ("dragon", 100, 10)
 
 monster_list = [ skeleton_monster, zombie_monster, goblin_monster, dragon_monster ]
-monster_index = random.randint(0, len(monster_list) - 1)
-monster_name, monster_health, monster_attack_power = monster_list[monster_index] # unpacking the tuple
+monster = random.choice(monster_list)
+monster_name, monster_health, monster_attack_power = monster # unpacking the tuple
 # monster_name = monster_list[monster_index][0]
 # monster_health = monster_list[monster_index][1]
 # monster_attack_power = monster_list[monster_index][2]
@@ -119,10 +128,16 @@ while True: #infinite loop
             print(loot)
         
         print("Rolling the dice ...")
-        loot_index = random.randint(0, len(loot_list) - 1) # random index from 0 to len(loot_list) - 1
+
+        # Change to random.choice for selecting loot
+        number_of_loot_items = dice_roll(sides_per_die=3) # roll a die to determine number of loot items
+        loot = random.choice(loot_list) # select a random loot item
+
         loot_gold = dice_roll(number_of_dice=5, sides_per_die=4)
-        print(f"The {monster_name} dropped one {loot_list[loot_index]} and {loot_gold} golds. Congrats!")
-        player["inventory"].append(loot_list[loot_index]) # how to add an item to the list
+
+        print(f"The {monster_name} dropped one {loot} and {loot_gold} golds. Congrats!")
+        player["inventory"].append(loot) # how to add an item to the list
+
         player["gold"] += loot_gold # gold = gold + loot_gold
         break
     else:
