@@ -1,18 +1,25 @@
 import random
 
 def dice_roll(sides_per_die, number_of_dice=1): # function definition
-    sum = 0
+    total = 0
+    # for loop with number_of_dice times
     for _ in range(number_of_dice): # _ means the value is not used
-        sum += random.randint(1, sides_per_die)
-    return sum
+        # in each iteration, add a random number between 1 and sides_per_die to total
+        total += random.randint(1, sides_per_die)
+    # return the total
+    return total
 
 def loot_roll(loot_list):
     number_of_loot_items = dice_roll(sides_per_die=3)  # roll a die to determine number of loot items
     looted_items = []
     # write a for loop number_of_loot_items times
+    for _ in range(number_of_loot_items):
         # in each iteration, select a random item from loot_list
+        loot = random.choice(loot_list)
         # and append it to looted_items
+        looted_items.append(loot)
     # return the looted_items list
+    return looted_items
 
 
 # accept input from the player using the following prompt:
@@ -129,15 +136,11 @@ while True: #infinite loop
         
         print("Rolling the dice ...")
 
-        # Change to random.choice for selecting loot
-        number_of_loot_items = dice_roll(sides_per_die=3) # roll a die to determine number of loot items
-        loot = random.choice(loot_list) # select a random loot item
-
+        looted_items = loot_roll(loot_list)  # loot_roll returns a list of looted items
         loot_gold = dice_roll(number_of_dice=5, sides_per_die=4)
 
-        print(f"The {monster_name} dropped one {loot} and {loot_gold} golds. Congrats!")
-        player["inventory"].append(loot) # how to add an item to the list
-
+        print(f"The {monster_name} dropped {looted_items} and {loot_gold} golds. Congrats!")
+        player["inventory"].extend(looted_items) # add a list to another list
         player["gold"] += loot_gold # gold = gold + loot_gold
         break
     else:
