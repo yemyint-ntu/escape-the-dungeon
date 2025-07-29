@@ -21,6 +21,15 @@ def loot_roll(loot_list):
     # return the looted_items list
     return looted_items
 
+def attack(attacker, enemy):
+        damage = attacker["attributes"]["strength"] + dice_roll(sides_per_die=6)
+        enemy["current_health"] = enemy["current_health"] - damage
+
+
+        # damage = strength + dice_roll(sides_per_die=6)
+        # monster_health -= damage
+        # print(f"You swing your weapon and deal {damage} damage!")
+
 
 # accept input from the player using the following prompt:
 # "What is your name, brave adventurer? " 
@@ -78,17 +87,57 @@ player = {
 # Monster encounter
 
 # monster_name, monster_health, monster_attack_power <- Tuple
-skeleton_monster = ("skeleton", 30, 4)
-zombie_monster = ("zombie", 35, 5)
-goblin_monster = ("goblin", 20, 3)
-dragon_monster = ("dragon", 100, 10)
+skeleton_monster = {
+    "name": "skeleton",
+    "attributes": {
+        "strength": 4,
+        "agility": 2,
+        "mind": 0,
+    },
+    "max_health": 30,  # health is 5 times the strength
+    "current_health": 30,  # current health is also 5 times the strength
+}
+
+zombie_monster = {
+    "name": "zombie",
+    "attributes": {
+        "strength": 5,
+        "agility": 1,
+        "mind": 0,
+    },
+    "max_health": 35,
+    "current_health": 35,
+}
+
+goblin_monster = {
+    "name": "goblin",
+    "attributes": {
+        "strength": 3,
+        "agility": 4,
+        "mind": 0,
+    },
+    "max_health": 20,
+    "current_health": 20,
+}
+
+dragon_monster = {
+    "name": "dragon",
+    "attributes": {
+        "strength": 20,
+        "agility": 10,
+        "mind": 5,
+    },
+    "max_health": 100,
+    "current_health": 100,
+}
 
 monster_list = [ skeleton_monster, zombie_monster, goblin_monster, dragon_monster ]
 monster = random.choice(monster_list)
-monster_name, monster_health, monster_attack_power = monster # unpacking the tuple
-# monster_name = monster_list[monster_index][0]
-# monster_health = monster_list[monster_index][1]
-# monster_attack_power = monster_list[monster_index][2]
+# monster_name, monster_health, monster_attack_power = monster # unpacking the tuple
+monster_name = monster["name"]
+monster_health = monster["current_health"]
+monster_attack_power = monster["attributes"]["strength"]
+
 print(f"\n⚠️ You have encountered a {monster_name}!")
 
 
