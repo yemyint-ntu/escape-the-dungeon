@@ -24,11 +24,8 @@ def loot_roll(loot_list):
 def attack(attacker, enemy):
         damage = attacker["attributes"]["strength"] + dice_roll(sides_per_die=6)
         enemy["current_health"] = enemy["current_health"] - damage
+        return damage
 
-
-        # damage = strength + dice_roll(sides_per_die=6)
-        # monster_health -= damage
-        # print(f"You swing your weapon and deal {damage} damage!")
 
 
 # accept input from the player using the following prompt:
@@ -78,6 +75,9 @@ player = {
         "agility": agility,
         "mind": mind,
     },
+    "equipments": {
+        "armor": "leather armor",
+    },
     "max_health": 5 * strength,  # health is 5 times the strength
     "current_health": 5 * strength,  # current health is also 5 times the strength
     "gold": 5,
@@ -94,6 +94,9 @@ skeleton_monster = {
         "agility": 2,
         "mind": 0,
     },
+    "equipments": {
+        "armor": "cloth armor",
+    },
     "max_health": 30,  # health is 5 times the strength
     "current_health": 30,  # current health is also 5 times the strength
 }
@@ -104,6 +107,9 @@ zombie_monster = {
         "strength": 5,
         "agility": 1,
         "mind": 0,
+    },
+    "equipments": {
+        "armor": "cloth armor",
     },
     "max_health": 35,
     "current_health": 35,
@@ -116,6 +122,9 @@ goblin_monster = {
         "agility": 4,
         "mind": 0,
     },
+    "equipments": {
+        "armor": "leather armor",
+    },
     "max_health": 20,
     "current_health": 20,
 }
@@ -127,21 +136,27 @@ dragon_monster = {
         "agility": 10,
         "mind": 5,
     },
+    "equipments": {
+        "armor": "dragon scale",
+    },
     "max_health": 100,
     "current_health": 100,
 }
 
 monster_list = [ skeleton_monster, zombie_monster, goblin_monster, dragon_monster ]
 monster = random.choice(monster_list)
-# monster_name, monster_health, monster_attack_power = monster # unpacking the tuple
-monster_name = monster["name"]
-monster_health = monster["current_health"]
-monster_attack_power = monster["attributes"]["strength"]
 
-print(f"\n⚠️ You have encountered a {monster_name}!")
+print(f"\n⚠️ You have encountered a {monster["name"]}!")
 
-
-loot_list = ["armor", "sword", "dagger", "staff", "mace", "axe"] # this is a list
+armor_value = {
+    "none": 0,
+    "cloth armor": 1,
+    "leather armor": 2,
+    "chainmail": 3,
+    "plate armor": 4,
+    "dragon scale": 5,
+}
+loot_list = ["leather armor", "sword", "dagger", "staff", "mace", "axe"] # this is a list
 #index          0,        1,      2,        3       4      5
 
 while True: #infinite loop
@@ -154,8 +169,7 @@ while True: #infinite loop
     action = input("Choose action: attack / dodge / spell: ").lower()
     has_dodged = False
     if action == 'attack':
-        damage = strength + dice_roll(sides_per_die=6)  # strength + dice_roll(1, 6)
-        monster_health -= damage
+        damage = attack(player, monster)
         print(f"You swing your weapon and deal {damage} damage!")
 
     elif action == 'dodge':
@@ -170,14 +184,14 @@ while True: #infinite loop
     elif action == 'spell':
         if mind >= 6:
             print("You cast a powerful fireball!")
-            monster_health = 0
+            monster["current_health"] = 0
         else:
             print("You fail to cast the spell.")
     else:
         print("Invalid action. Choose attack, dodge, or spell.")
 
-    if monster_health <= 0:
-        print(f"You defeated the {monster_name}!")
+    if monster["current_health"] <= 0:
+        print(f"You defeated the {monster["name"]}!")
         print("Here are the possilbe loot items:")
         
         for loot in loot_list: # loop through the list
@@ -188,16 +202,16 @@ while True: #infinite loop
         looted_items = loot_roll(loot_list)  # loot_roll returns a list of looted items
         loot_gold = dice_roll(number_of_dice=5, sides_per_die=4)
 
-        print(f"The {monster_name} dropped {looted_items} and {loot_gold} golds. Congrats!")
+        print(f"The {monster["name"]} dropped {looted_items} and {loot_gold} golds. Congrats!")
         player["inventory"].extend(looted_items) # add a list to another list
         player["gold"] += loot_gold # gold = gold + loot_gold
         break
     else:
         if not has_dodged: # if has_dodged == False:
             # Monster attacks back
-            hit = dice_roll(sides_per_die=6) + monster_attack_power
-            player["current_health"] -= hit
-            print(f"The {monster_name} hits you for {hit} damage. Your health is now {player["current_health"]}.")
+            hit = attack(monster, player)
+
+            print(f"The {monster["name"]} hits you for {hit} damage. Your health is now {player["current_health"]}.")
 
 # if player health is less than or equal to zero
 # print game over
