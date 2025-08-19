@@ -1,5 +1,17 @@
 import random
 
+class Character:
+    name = ""
+    max_health = 0
+    current_health = 0
+
+npc = Character()  # create an object of Character class
+npc.name = "Happy"
+npc.max_health = 30
+npc.current_health = 30
+
+print(f"NPC Name: {npc.name}, Max Health: {npc.max_health}, Current Health: {npc.current_health}")
+
 def dice_roll(sides_per_die, number_of_dice=1): # function definition
     total = 0
     # for loop with number_of_dice times
@@ -22,11 +34,14 @@ def loot_roll(loot_list):
     return looted_items
 
 def attack(attacker, enemy):
-        damage = attacker["attributes"]["strength"] + dice_roll(sides_per_die=6)
-        enemy["current_health"] = enemy["current_health"] - damage
-        return damage
+    damage = attacker["attributes"]["strength"] + dice_roll(sides_per_die=6)
+    # reduce the damage based on enemy's armor value
+    damage = damage - get_armor_value(enemy)
+    enemy["current_health"] = enemy["current_health"] - damage
+    return damage
 
-
+def get_armor_value(character):
+    return armor_value[character["equipments"]["armor"]]
 
 # accept input from the player using the following prompt:
 # "What is your name, brave adventurer? " 
