@@ -1,16 +1,38 @@
 import random
 
+class Attribute:
+    def __init__(self, strength, agility, mind):
+        self.strength = strength
+        self.agility = agility
+        self.mind = mind
+
 class Character:
-    name = ""
-    max_health = 0
-    current_health = 0
+    def __init__(self, name, character_class, attributes): #constructor method
+        self.name = name
+        self.character_class = character_class
+        self.max_health = attributes.strength * 5
+        self.current_health = self.max_health
+        self.attributes = attributes
+        # default values
+        self.equipments = None
 
-npc = Character()  # create an object of Character class
-npc.name = "Happy"
-npc.max_health = 30
-npc.current_health = 30
+class PlayerCharacter(Character): # inheritance - parent class is Character
+    def __init__(self, name, character_class, attributes):
+        super().__init__(name, character_class, attributes) # super() means parent class Character
+        self.gold = 0
+        self.inventory = []
 
-print(f"NPC Name: {npc.name}, Max Health: {npc.max_health}, Current Health: {npc.current_health}")
+class NonplayerCharacter(Character):
+    def __init__(self, name, character_class, attributes):
+        super().__init__(name, character_class, attributes)
+
+npc = NonplayerCharacter("Happy", "NPC", Attribute(5, 3, 2))  # create an object of NonplayerCharacter class
+
+print(f"NPC Name: {npc.name}, Class: {npc.character_class}, Max Health: {npc.max_health}, Current Health: {npc.current_health}")
+
+hero = PlayerCharacter("Hero", "Warrior", Attribute(6, 4, 3))
+
+print(f"Player Name: {hero.name}, Class: {hero.character_class}, Max Health: {hero.max_health}, Current Health: {hero.current_health}")
 
 def dice_roll(sides_per_die, number_of_dice=1): # function definition
     total = 0
@@ -69,35 +91,37 @@ class_choice = input("Enter 1, 2, or 3: ")
 
 if class_choice == "1":
     player_class = "Warrior"
-    strength, agility, mind = 8, 4, 2
+    attr = Attribute(8, 4, 2)
 elif class_choice == "2":
     player_class = "Rogue"
-    strength, agility, mind = 4, 8, 2
+    attr = Attribute(4, 8, 2)
 elif class_choice == "3":
     player_class = "Mage"
-    strength, agility, mind = 2, 4, 8
+    attr = Attribute(2, 4, 8)
 else:
     print("Invalid choice, defaulting to Warrior.")
     player_class = "Warrior"
-    strength, agility, mind = 8, 4, 2
+    attr = Attribute(8, 4, 2)
 
 # declaring a dictionary
 player = {
     "name": character_name,
     "class": player_class,
     "attributes": {
-        "strength": strength,
-        "agility": agility,
-        "mind": mind,
+        "strength": attr.strength,
+        "agility": attr.agility,
+        "mind": attr.mind,
     },
     "equipments": {
         "armor": "leather armor",
     },
-    "max_health": 5 * strength,  # health is 5 times the strength
-    "current_health": 5 * strength,  # current health is also 5 times the strength
+    "max_health": 5 * attr.strength,  # health is 5 times the strength
+    "current_health": 5 * attr.strength,  # current health is also 5 times the strength
     "gold": 5,
     "inventory": [],
 }
+
+_player = PlayerCharacter(character_name, player_class, attr)
 
 # Monster encounter
 
@@ -115,6 +139,8 @@ skeleton_monster = {
     "max_health": 30,  # health is 5 times the strength
     "current_health": 30,  # current health is also 5 times the strength
 }
+
+_skeleton_monster = NonplayerCharacter("skeleton", "Undead", Attribute(4, 2, 0))
 
 zombie_monster = {
     "name": "zombie",
