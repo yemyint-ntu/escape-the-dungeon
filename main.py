@@ -1,5 +1,10 @@
 import random
 
+class Equipment:
+    def __init__(self, weapon, armor):
+        self.weapon = weapon
+        self.armor = armor
+
 class Attribute:
     def __init__(self, strength, agility, mind):
         self.strength = strength
@@ -16,6 +21,20 @@ class Character:
         # default values
         self.equipments = None
 
+    def equip(self, equipment):
+        self.equipments = equipment
+
+    def get_armor_value(self):
+        if self.equipments != None and self.equipments.armor != None:
+            return armor_value[self.equipments.armor]
+        return 0
+
+    def attack(self, enemy):
+        damage = self.attributes.strength + dice_roll(sides_per_die=6)
+        damage = damage - enemy.get_armor_value()
+        enemy.current_health = enemy.current_health - damage
+        return damage
+
 class PlayerCharacter(Character): # inheritance - parent class is Character
     def __init__(self, name, character_class, attributes):
         super().__init__(name, character_class, attributes) # super() means parent class Character
@@ -31,6 +50,8 @@ npc = NonplayerCharacter("Happy", "NPC", Attribute(5, 3, 2))  # create an object
 print(f"NPC Name: {npc.name}, Class: {npc.character_class}, Max Health: {npc.max_health}, Current Health: {npc.current_health}")
 
 hero = PlayerCharacter("Hero", "Warrior", Attribute(6, 4, 3))
+hero.equip(Equipment("sword", "leather armor"))
+hero.attack(npc)
 
 print(f"Player Name: {hero.name}, Class: {hero.character_class}, Max Health: {hero.max_health}, Current Health: {hero.current_health}")
 
@@ -214,7 +235,7 @@ while True: #infinite loop
         print(f"You swing your weapon and deal {damage} damage!")
 
     elif action == 'dodge':
-        dodge_chance = agility * 5  # percentage
+        dodge_chance = attr.agility * 5  # percentage
         if dice_roll(sides_per_die=100) <= dodge_chance:
             has_dodged = True
             print("You dodged the attack!")
@@ -223,7 +244,7 @@ while True: #infinite loop
             print("You tried to dodge but failed!")
 
     elif action == 'spell':
-        if mind >= 6:
+        if attr.mind >= 6:
             print("You cast a powerful fireball!")
             monster["current_health"] = 0
         else:
