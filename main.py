@@ -1,31 +1,6 @@
 import game
 import random
 
-# npc = NonplayerCharacter("Happy", "NPC", Attribute(5, 3, 2))  # create an object of NonplayerCharacter class
-
-# print(f"NPC Name: {npc.name}, Class: {npc.character_class}, Max Health: {npc.max_health}, Current Health: {npc.current_health}")
-
-# hero = PlayerCharacter("Hero", "Warrior", Attribute(6, 4, 3))
-# iron_sword = Weapon("iron sword", "1d6")
-# dagger = Weapon("dagger", "1d4")
-# magic_sword = Weapon("magic sword", "2d4")
-
-# beginner_armor = Armor("beginner armor", "cloth armor")
-# hero.equip(Equipment(iron_sword, beginner_armor))
-# hero.attack(npc)
-
-# print(f"Player Name: {hero.name}, Class: {hero.character_class}, Max Health: {hero.max_health}, Current Health: {hero.current_health}")
-
-# def attack(attacker, enemy):
-#     damage = attacker["attributes"]["strength"] + dice_roll(sides_per_die=6)
-#     # reduce the damage based on enemy's armor value
-#     damage = damage - get_armor_value(enemy)
-#     enemy["current_health"] = enemy["current_health"] - damage
-#     return damage
-
-# def get_armor_value(character):
-#     return armor_value[character["equipments"]["armor"]]
-
 # accept input from the player using the following prompt:
 # "What is your name, brave adventurer? " 
 # Store the user's name in a variable called character_name
@@ -65,12 +40,25 @@ else:
     attr = game.Attribute(8, 4, 2)
 
 player = game.PlayerCharacter(character_name, player_class, attr)
+player.equip_armor(game.Armor("cloth armor", "cloth armor"))
+player.equip_weapon(game.Weapon("dagger", "1d4"))
 
 # Monster encounter
 skeleton_monster = game.NonplayerCharacter("skeleton", "Undead", game.Attribute(4, 2, 0))
+skeleton_monster.equip_armor(game.Armor("leather armor", "leather armor"))
+skeleton_monster.equip_weapon(game.Weapon("iron sword", "1d6"))
+
 zombie_monster = game.NonplayerCharacter("zombie", "Undead", game.Attribute(5, 1, 0))
+zombie_monster.equip_armor(game.Armor("cloth armor", "cloth armor"))
+zombie_monster.equip_weapon(game.Weapon("claws", "1d4"))
+
 goblin_monster = game.NonplayerCharacter("goblin", "Beast", game.Attribute(3, 4, 0))
+goblin_monster.equip_armor(game.Armor("leather armor", "leather armor"))
+goblin_monster.equip_weapon(game.Weapon("club", "1d6"))
+
 dragon_monster = game.NonplayerCharacter("dragon", "Dragon", game.Attribute(20, 10, 5))
+dragon_monster.equip_armor(game.Armor("scaled armor", "dragon scale"))
+dragon_monster.equip_weapon(game.Weapon("fire breath", "3d6"))
 
 monster_list = [ skeleton_monster, zombie_monster, goblin_monster, dragon_monster ]
 monster = random.choice(monster_list)
