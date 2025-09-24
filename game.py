@@ -48,6 +48,7 @@ class Character:
         self.attributes = attributes
         # default values
         self.equipments = Equipment(None, None)
+        self.is_in_combat = False
 
     def equip_armor(self, armor):
         self.equipments.armor = armor
@@ -73,6 +74,33 @@ class Character:
         else:
             has_dodged = False
         return has_dodged
+    
+    def show_stats(self):
+        if self.is_in_combat == False:
+            print("\n--- Character Stats ---")
+            print(f"Name: {self.name}")
+            print(f"Class: {self.character_class}")
+            print(f"Health: {self.current_health}/{self.max_health}")
+            print(f"Strength: {self.attributes.strength}")
+            print(f"Agility: {self.attributes.agility}")
+            print(f"Mind: {self.attributes.mind}")
+            if self.equipments.weapon != None:
+                print(f"Weapon: {self.equipments.weapon.name} ({self.equipments.weapon.damage_dice})")
+            else:
+                print("Weapon: None")
+            if self.equipments.armor != None:
+                print(f"Armor: {self.equipments.armor.name} ({self.equipments.armor.type})")
+            else:
+                print("Armor: None")
+            print(f"Armor Value: {self.get_armor_value()}")
+        else:
+            print(f"{self.name} is in combat!")
+
+    def start_combat(self):
+        self.is_in_combat = True
+
+    def end_combat(self):
+        self.is_in_combat = False
 
 class PlayerCharacter(Character): # inheritance - parent class is Character
     def __init__(self, name, character_class, attributes):
