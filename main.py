@@ -62,7 +62,7 @@ dragon_monster = game.NonplayerCharacter("dragon", "Dragon", game.Attribute(20, 
 dragon_monster.equip_armor(game.Armor("scaled armor", "dragon scale"))
 dragon_monster.equip_weapon(game.Weapon("fire breath", "3d6"))
 
-monster_list = [ skeleton_monster, zombie_monster, goblin_monster, dragon_monster ]
+monster_list = [ skeleton_monster, zombie_monster, goblin_monster, skeleton_monster ]
 
 # --- Rooms Map ---
 rooms = {
@@ -74,12 +74,14 @@ rooms = {
     'Hallway': {
         'description': 'A dim hallway. A heavy gate blocks the north path.',
         'west': 'Cell',
+        'encounter': True,
         'north': 'Armory'
     },
     'Armory': {
         'description': 'A room full of rusty weapons and a glowing staff.',
         'south': 'Hallway',
         'item': 'magic staff',
+        'encounter': True,
         'east': 'Exit'
     },
     'Exit': {
@@ -91,75 +93,60 @@ rooms = {
 # --- Start Game ---
 current_room = 'Cell'
 
-monster = random.choice(monster_list)
+print("You find yourself in a dungeon. Your goal is to escape!")
+print ("Type 'exit' to quit the game or 'stats' to view your character sheet.")
 
-def encounter(player, monster):
-    print(f"\n⚠️ You have encountered a {monster.name}!")
-    player.start_combat()
+while True:
+    print(f"\nYou are in the {current_room}.")
+    print(rooms[current_room]['description'])
 
-    loot_list = ["leather armor", "sword", "dagger", "staff", "mace", "axe"] # this is a list
-    #index          0,        1,      2,        3       4      5
-
-    while True: #infinite loop
-        # if player health is less than or equal to zero
-        # exit from the loop
+    if 'encounter' in rooms[current_room] and rooms[current_room]['encounter'] == True:
+        monster = random.choice(monster_list)
+        game.encounter(player, monster)
+        rooms[current_room]['encounter'] = False  # prevent re-encounter in the same room
         if player.current_health <= 0:
+            print("Game Over!!")
             break
 
-        # print(f"\nYour Health: {health} | Skeleton Health: {monster_health}")
-        action = input("Choose action: attack / dodge / spell: ").lower()
-        has_dodged = False
-        if action == 'attack':
-            damage = player.attack(monster)
-            print(f"You swing your weapon and deal {damage} damage!")
+    if 'item' in rooms[current_room]:
+        print(f"You see a {rooms[current_room]['item']} here.")
 
-        elif action == 'dodge':
-            has_dodged = player.dodge()
-            if has_dodged:
-                print("You dodged the attack!")
-            else:
-                print("You tried to dodge but failed!")
+    action = input("What do you want to do? (go [direction] / take [item] / stats / exit): ").lower()
 
-        elif action == 'spell':
-            if attr.mind >= 6:
-                print("You cast a powerful fireball!")
-                monster.current_health = 0
-            else:
-                print("You fail to cast the spell.")
+    if action == 'exit':
+        print("Exiting the game. Goodbye!")
+        break
+    elif action == 'stats':
+        player.show_stats()
+        continue
+    elif action.startswith('go '):
+        direction = action.split()[1].lower()
+        if direction in rooms[current_room]:
+            current_room = rooms[current_room][direction]
+            if current_room == 'Exit':
+                print("Congratulations, brave adventurer! You have escaped the dungeon.")
+                break
         else:
-            print("Invalid action. Choose attack, dodge, or spell.")
-
-        if monster.current_health <= 0:
-            print(f"You defeated the {monster.name}!")
-            print("Here are the possilbe loot items:")
-            
-            for loot in loot_list: # loop through the list
-                print(loot)
-            
-            print("Rolling the dice ...")
-
-            looted_items = game.loot_roll(loot_list)  # loot_roll returns a list of looted items
-            loot_gold = game.dice_roll(number_of_dice=5, sides_per_die=4)
-
-            print(f"The {monster.name} dropped {looted_items} and {loot_gold} golds. Congrats!")
-            player.inventory.extend(looted_items) # add a list to another list
-            player.gold += loot_gold # gold = gold + loot_gold
-            break
+            print("Invalid direction, try again.")
+    elif action.startswith('take '):
+        item = action.split()[1].lower()
+        if 'item' in rooms[current_room] and item == rooms[current_room]['item']:
+            player.inventory.append(rooms[current_room].pop('item'))
+            print(f"You have taken the {item}.")
         else:
-            if not has_dodged: # if has_dodged == False:
-                # Monster attacks back
-                hit = monster.attack(player)
-
-                print(f"The {monster.name} hits you for {hit} damage. Your health is now {player.current_health}.")
-
-    player.end_combat()
+            print("Invalid item, try again.")
 
 
-# if player health is less than or equal to zero
-# print game over
-if player.current_health <= 0:
-    print("Game Over!!")
-else:
-    print("Congratulations, brave adventurer! You have escaped the dungeon.")
-    print(f"You now have {player.inventory} in your inventory and {player.gold} golds.")
-# End of the game
+# monster = random.choice(monster_list)
+# game.encounter(player, monster)
+
+
+
+# # if player health is less than or equal to zero
+# # print game over
+# if player.current_health <= 0:
+#     print("Game Over!!")
+# else:
+#     print("Congratulations, brave adventurer! You have escaped the dungeon.")
+#     print(f"You now have {player.inventory} in your inventory and {player.gold} golds.")
+# # End of the game

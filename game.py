@@ -132,3 +132,65 @@ def loot_roll(loot_list):
         looted_items.append(loot)
     # return the looted_items list
     return looted_items
+
+def encounter(player, monster):
+    print(f"\n⚠️ You have encountered a {monster.name}!")
+    player.start_combat()
+
+    loot_list = ["leather armor", "sword", "dagger", "staff", "mace", "axe"] # this is a list
+    #index          0,        1,      2,        3       4      5
+
+    while True: #infinite loop
+        # if player health is less than or equal to zero
+        # exit from the loop
+        if player.current_health <= 0:
+            break
+
+        # print(f"\nYour Health: {health} | Skeleton Health: {monster_health}")
+        action = input("Choose action: attack / dodge / spell: ").lower()
+        has_dodged = False
+        if action == 'attack':
+            damage = player.attack(monster)
+            print(f"You swing your weapon and deal {damage} damage!")
+
+        elif action == 'dodge':
+            has_dodged = player.dodge()
+            if has_dodged:
+                print("You dodged the attack!")
+            else:
+                print("You tried to dodge but failed!")
+
+        elif action == 'spell':
+            if player.attributes.mind >= 6:
+                print("You cast a powerful fireball!")
+                monster.current_health = 0
+            else:
+                print("You fail to cast the spell.")
+        else:
+            print("Invalid action. Choose attack, dodge, or spell.")
+
+        if monster.current_health <= 0:
+            print(f"You defeated the {monster.name}!")
+            print("Here are the possilbe loot items:")
+            
+            for loot in loot_list: # loop through the list
+                print(loot)
+            
+            print("Rolling the dice ...")
+
+            looted_items = loot_roll(loot_list)  # loot_roll returns a list of looted items
+            loot_gold = dice_roll(number_of_dice=5, sides_per_die=4)
+
+            print(f"The {monster.name} dropped {looted_items} and {loot_gold} golds. Congrats!")
+            player.inventory.extend(looted_items) # add a list to another list
+            player.gold += loot_gold # gold = gold + loot_gold
+            break
+        else:
+            if not has_dodged: # if has_dodged == False:
+                # Monster attacks back
+                hit = monster.attack(player)
+
+                print(f"The {monster.name} hits you for {hit} damage. Your health is now {player.current_health}.")
+
+    player.end_combat()
+
