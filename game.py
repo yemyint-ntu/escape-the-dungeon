@@ -8,9 +8,29 @@ armor_value = {
     "plate armor": 4,
     "dragon scale": 5,
 }
-class Weapon:
-    def __init__(self, name, damage_dice):
+
+class Item:
+    def __init__(self, name):
         self.name = name
+    
+    def __str__(self):
+        return self.name
+    
+    def __repr__(self):
+        return self.name
+
+class QuestItem(Item):
+    def __init__(self, name):
+        super().__init__(name)
+
+class Consumable(Item):
+    def __init__(self, name, effect):
+        super().__init__(name)
+        self.effect = effect
+
+class Weapon(Item):
+    def __init__(self, name, damage_dice):
+        super().__init__(name)
         self.damage_dice = damage_dice
 
     def get_damage(self):
@@ -20,9 +40,9 @@ class Weapon:
         sides = int(result[1])
         return dice_roll(sides_per_die=sides, number_of_dice=num_dice)
 
-class Armor:
+class Armor(Item):
     def __init__(self, name, type):
-        self.name = name
+        super().__init__(name)
         self.type = type
 
     def get_defense(self):
@@ -108,6 +128,12 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
         self.gold = 0
         self.inventory = []
 
+    def is_in_inventory(self, item_name):
+        for item in self.inventory:
+            if item.name == item_name:
+                return True
+        return False
+
 class NonplayerCharacter(Character):
     def __init__(self, name, character_class, attributes):
         super().__init__(name, character_class, attributes)
@@ -137,8 +163,14 @@ def encounter(player, monster):
     print(f"\n⚠️ You have encountered a {monster.name}!")
     player.start_combat()
 
-    loot_list = ["leather armor", "sword", "dagger", "staff", "mace", "axe"] # this is a list
-    #index          0,        1,      2,        3       4      5
+    loot_list = [
+        Armor("White Leather Armor", "leather armor"), 
+        Weapon("Sword", "1d6"), 
+        Weapon("Dagger", "1d4"), 
+        Weapon("Staff", "1d4"), 
+        Weapon("Mace", "1d6"), 
+        Weapon("Axe", "1d6")
+    ] # this is a list
 
     while True: #infinite loop
         # if player health is less than or equal to zero

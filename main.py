@@ -68,7 +68,7 @@ monster_list = [ skeleton_monster, zombie_monster, goblin_monster, skeleton_mons
 rooms = {
     'Cell': {
         'description': 'A cold, dark cell. The door is locked.',
-        'east': 'Hallway',
+        'east': 'Hallway (locked)',
         'item': 'key'
     },
     'Hallway': {
@@ -111,7 +111,7 @@ while True:
     if 'item' in rooms[current_room]:
         print(f"You see a {rooms[current_room]['item']} here.")
 
-    action = input("What do you want to do? (go [direction] / take [item] / stats / exit): ").lower()
+    action = input("What do you want to do? (go [direction] / take [item] / use [item] / stats / exit): ").lower()
 
     if action == 'exit':
         print("Exiting the game. Goodbye!")
@@ -122,19 +122,34 @@ while True:
     elif action.startswith('go '):
         direction = action.split()[1].lower()
         if direction in rooms[current_room]:
-            current_room = rooms[current_room][direction]
-            if current_room == 'Exit':
-                print("Congratulations, brave adventurer! You have escaped the dungeon.")
-                break
+            if rooms[current_room][direction].lower().endswith('(locked)'):
+                print("The path is locked. You need a key to proceed.")
+            else:
+                current_room = rooms[current_room][direction]
+                if current_room == 'Exit':
+                    print("Congratulations, brave adventurer! You have escaped the dungeon.")
+                    break
         else:
             print("Invalid direction, try again.")
     elif action.startswith('take '):
         item = action.split()[1].lower()
         if 'item' in rooms[current_room] and item == rooms[current_room]['item']:
-            player.inventory.append(rooms[current_room].pop('item'))
+            player.inventory.append(game.QuestItem(rooms[current_room].pop('item')))
             print(f"You have taken the {item}.")
         else:
             print("Invalid item, try again.")
+    elif action.startswith('use '):
+        item = action.split()[1].lower()
+        if player.is_in_inventory(item):
+            if item == 'key' and current_room == 'Cell':
+                print("You use the key to unlock the door to the Hallway.")
+                rooms['Cell']['east'] = 'Hallway'
+                rooms['Cell']['description'] = rooms['Cell']['description'].replace('locked', 'unlocked')
+                # player.inventory.remove('key')
+            else:
+                print(f"You can't use the {item} here.")
+        else:
+            print(f"You don't have the {item} in your inventory.")
 
 
 # monster = random.choice(monster_list)
