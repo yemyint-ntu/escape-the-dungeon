@@ -130,9 +130,46 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
 
     def is_in_inventory(self, item_name):
         for item in self.inventory:
-            if item.name == item_name:
+            if item.name.lower() == item_name:
                 return True
         return False
+    
+    def use_item(self, item_name):
+        for index, item in enumerate(self.inventory):
+            if item.name.lower() == item_name:
+                del self.inventory[index]
+                break
+
+    def unequip(self, item):
+        if isinstance(item, Weapon):
+            self.equipments.weapon = None
+            self.inventory.append(item)
+            print(f"You have unequipped the weapon: {item.name}")
+        elif isinstance(item, Armor):
+            self.equipments.armor = None
+            self.inventory.append(item)
+            print(f"You have unequipped the armor: {item.name}")
+        else:
+            print(f"You cannot unequip the item: {item.name}")
+
+    def equip(self, item_name):
+        for index, item in enumerate(self.inventory):
+            if item.name.lower() == item_name:
+                if isinstance(item, Weapon):
+                    self.unequip(self.equipments.weapon)
+                    del self.inventory[index]
+                    self.equip_weapon(item)
+                    print(f"You have equipped the weapon: {item.name}")
+                elif isinstance(item, Armor):
+                    self.unequip(self.equipments.armor)
+                    del self.inventory[index]
+                    self.equip_armor(item)
+                    print(f"You have equipped the armor: {item.name}")
+                else:
+                    print(f"You cannot equip the item: {item.name}")
+                break
+
+        
 
 class NonplayerCharacter(Character):
     def __init__(self, name, character_class, attributes):

@@ -111,7 +111,8 @@ while True:
     if 'item' in rooms[current_room]:
         print(f"You see a {rooms[current_room]['item']} here.")
 
-    action = input("What do you want to do? (go [direction] / take [item] / use [item] / stats / exit): ").lower()
+    print("")
+    action = input("What do you want to do? (go [direction] / take [item] / use [item] / stats / exit / inventory / equip [weapon/armor]): ").lower()
 
     if action == 'exit':
         print("Exiting the game. Goodbye!")
@@ -132,24 +133,35 @@ while True:
         else:
             print("Invalid direction, try again.")
     elif action.startswith('take '):
-        item = action.split()[1].lower()
+        item = action.removeprefix('take ').lower()
         if 'item' in rooms[current_room] and item == rooms[current_room]['item']:
             player.inventory.append(game.QuestItem(rooms[current_room].pop('item')))
             print(f"You have taken the {item}.")
         else:
             print("Invalid item, try again.")
     elif action.startswith('use '):
-        item = action.split()[1].lower()
+        item = action.removeprefix('use ').lower()
         if player.is_in_inventory(item):
             if item == 'key' and current_room == 'Cell':
+                player.use_item('key')
                 print("You use the key to unlock the door to the Hallway.")
                 rooms['Cell']['east'] = 'Hallway'
                 rooms['Cell']['description'] = rooms['Cell']['description'].replace('locked', 'unlocked')
-                # player.inventory.remove('key')
             else:
                 print(f"You can't use the {item} here.")
         else:
             print(f"You don't have the {item} in your inventory.")
+    elif action == 'inventory':
+        if player.inventory:
+            print("Your inventory contains:")
+            for item in player.inventory:
+                print(f"- {item}")
+        else:
+            print("Your inventory is empty.")
+    elif action.startswith('equip '):
+        equip_item = action.removeprefix('equip ').lower()
+        if player.is_in_inventory(equip_item):
+            player.equip(equip_item)
 
 
 # monster = random.choice(monster_list)
