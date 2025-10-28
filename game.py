@@ -24,9 +24,17 @@ class QuestItem(Item):
         super().__init__(name)
 
 class Consumable(Item):
-    def __init__(self, name, effect):
+    def __init__(self, name, effect, amount):
         super().__init__(name)
         self.effect = effect
+        self.amount = amount
+
+    def use(self, character):
+        if self.effect == "heal":
+            character.current_health += self.amount
+            if character.current_health > character.max_health:
+                character.current_health = character.max_health
+            print(f"{character.name} healed for {self.amount} health points.")
 
 class Weapon(Item):
     def __init__(self, name, damage_dice):
@@ -136,7 +144,10 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
     
     def use_item(self, item_name):
         for index, item in enumerate(self.inventory):
-            if item.name.lower() == item_name:
+            if item.name.lower() == item_name.lower():
+                if isinstance(item, Consumable):
+                    item.use(self)
+
                 del self.inventory[index]
                 break
 
@@ -206,7 +217,9 @@ def encounter(player, monster):
         Weapon("Dagger", "1d4"), 
         Weapon("Staff", "1d4"), 
         Weapon("Mace", "1d6"), 
-        Weapon("Axe", "1d6")
+        Weapon("Axe", "1d6"),
+        Consumable("Health Potion", "heal", 10),
+        Consumable("Health Potion", "heal", 10),
     ] # this is a list
 
     while True: #infinite loop
