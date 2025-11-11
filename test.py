@@ -1,5 +1,5 @@
 import unittest
-from game import Consumable, Character, PlayerCharacter, Attribute
+from game import Armor, Consumable, PlayerCharacter, Attribute, Weapon
 
 class TestPlayerCharacter(unittest.TestCase):
     def test_create_new_player_character(self):
@@ -29,6 +29,31 @@ class TestPlayerCharacter(unittest.TestCase):
         player.inventory.append(potion2)
         player.use_item("Health Potion")
         self.assertEqual(player.current_health, player.max_health)  # should not exceed max health
+
+    def test_player_equip_weapon(self):
+        attr = Attribute(4, 4, 4)
+        player = PlayerCharacter("Cora", "Rogue", attr)
+        weapon = Weapon("Short Sword", "1d6")
+        player.equip_weapon(weapon)
+        print(f"Equipped weapon: {player.equipments.weapon}")
+        self.assertEqual(player.equipments.weapon.name, "Short Sword")
+    
+    def test_player_equip_armor(self):
+        attr = Attribute(4, 4, 4)
+        player = PlayerCharacter("Dain", "Warrior", attr)
+        armor = Armor("Silver Chainmail", "chainmail")
+        player.equip_armor(armor)
+        print(f"Equipped armor: {player.equipments.armor}")
+        self.assertEqual(player.equipments.armor.name, "Silver Chainmail")
+
+    def test_player_unequip_weapon(self):
+        attr = Attribute(4, 4, 4)
+        player = PlayerCharacter("Eira", "Rogue", attr)
+        weapon = Weapon("Long Bow", "1d8")
+        player.equip(weapon)
+        print(f"Equipped weapon: {player.equipments.weapon}")
+        player.unequip(weapon)
+        self.assertIsNone(player.equipments.weapon)
 
 
 if __name__ == '__main__':
