@@ -135,6 +135,7 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
         super().__init__(name, character_class, attributes) # super() means parent class Character
         self.gold = 0
         self.inventory = []
+        self.spells = (None, None, None) # tuple with 3 spell slots
 
     def is_in_inventory(self, item_name):
         for item in self.inventory:
@@ -151,28 +152,36 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
                 del self.inventory[index]
                 break
 
-    def unequip(self, item):
-        if isinstance(item, Weapon):
-            self.equipments.weapon = None
-            self.inventory.append(item)
-            print(f"You have unequipped the weapon: {item.name}")
-        elif isinstance(item, Armor):
+    def unequip_armor(self):
+        # if armor is equipped, unequip it and add to inventory
+        if self.equipments.armor != None:
+            armor = self.equipments.armor
             self.equipments.armor = None
-            self.inventory.append(item)
-            print(f"You have unequipped the armor: {item.name}")
+            self.inventory.append(armor)
+            print(f"You have unequipped the armor: {armor.name}")
         else:
-            print(f"You cannot unequip the item: {item.name}")
+            print("No armor is currently equipped.")
+
+    def unequip_weapon(self):
+        # if weapon is equipped, unequip it and add to inventory
+        if self.equipments.weapon != None:
+            weapon = self.equipments.weapon
+            self.equipments.weapon = None
+            self.inventory.append(weapon)
+            print(f"You have unequipped the weapon: {weapon.name}")
+        else:
+            print("No weapon is currently equipped.")
 
     def equip(self, item_name):
         for index, item in enumerate(self.inventory):
             if item.name.lower() == item_name:
                 if isinstance(item, Weapon):
-                    self.unequip(self.equipments.weapon)
+                    self.unequip_weapon()
                     del self.inventory[index]
                     self.equip_weapon(item)
                     print(f"You have equipped the weapon: {item.name}")
                 elif isinstance(item, Armor):
-                    self.unequip(self.equipments.armor)
+                    self.unequip_armor()
                     del self.inventory[index]
                     self.equip_armor(item)
                     print(f"You have equipped the armor: {item.name}")
@@ -180,11 +189,39 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
                     print(f"You cannot equip the item: {item.name}")
                 break
 
+    def learn_spell(self, spell):
+        for i in range(len(self.spells)):
+            if self.spells[i] is None:
+                spell_list = list(self.spells)
+                spell_list[i] = spell
+                self.spells = tuple(spell_list)
+                print(f"You have learned the spell: {spell.name}")
+                return
+        print("You cannot learn more spells. Spell slots are full.")
+
+    def cast_spell(self, spell_name, enemy):
+        for spell in self.spells:
+            if spell is not None and spell_name == spell.name:
+                # implement spell casting logic
+                spell.cast(enemy)
         
 
 class NonplayerCharacter(Character):
     def __init__(self, name, character_class, attributes):
         super().__init__(name, character_class, attributes)
+
+class Spell:
+    def __init__(self, name, damage_dice, mana_cost):
+        self.name = name
+        self.damage_dice = damage_dice
+        self.mana_cost = mana_cost
+
+    def cast(self, enemy):
+        sides_per_die = int(self.damage_dice.split('d')[1]) # 2d6 -> 6
+        number_of_dice = int(self.damage_dice.split('d')[0]) # 2d6 -> 2
+        damage = dice_roll(sides_per_die, number_of_dice)
+        enemy.current_health -= damage
+        print(f"You cast {self.name} and deal {damage} damage to {enemy.name}.")
 
 def dice_roll(sides_per_die, number_of_dice=1): # function definition
     total = 0

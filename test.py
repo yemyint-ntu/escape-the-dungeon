@@ -1,5 +1,5 @@
 import unittest
-from game import Armor, Consumable, PlayerCharacter, Attribute, Weapon
+from game import Armor, Consumable, PlayerCharacter, Attribute, Spell, Weapon
 
 class TestPlayerCharacter(unittest.TestCase):
     def test_create_new_player_character(self):
@@ -52,9 +52,27 @@ class TestPlayerCharacter(unittest.TestCase):
         weapon = Weapon("Long Bow", "1d8")
         player.equip(weapon)
         print(f"Equipped weapon: {player.equipments.weapon}")
-        player.unequip(weapon)
+        player.unequip_weapon()
         self.assertIsNone(player.equipments.weapon)
 
+    def test_player_unequip_weapon_error_case(self):
+        attr = Attribute(4, 4, 4)
+        player = PlayerCharacter("Finn", "Rogue", attr)
+        # print(f"Player's inventory before unequip attempt: {player.inventory}")
+        weapon = Weapon("Dagger", "1d4")
+        # try to unequip a weapon that is not equipped
+        player.unequip_weapon()
+        # print(f"Player's inventory after unequip attempt: {player.inventory}")
+        self.assertListEqual(player.inventory, [])  # inventory should remain empty
+
+    def test_spell(self):
+        attr = Attribute(2, 4, 8)
+        player = PlayerCharacter("Gwen", "Mage", attr)
+        fireball_spell = Spell("Fireball", "2d3", 120)
+        player.learn_spell(fireball_spell)
+        self.assertIsNotNone(player.spells[0])
+        self.assertEqual(player.spells[0].name, "Fireball")
+        player.cast_spell("Fireball", player)  # casting on self for test purposes
 
 if __name__ == '__main__':
     unittest.main()
