@@ -40,8 +40,22 @@ else:
     attr = game.Attribute(8, 4, 2)
 
 player = game.PlayerCharacter(character_name, player_class, attr)
-player.equip_armor(game.Armor("cloth armor", "cloth armor"))
-player.equip_weapon(game.Weapon("dagger", "1d4"))
+if player_class == "Warrior":
+    player.equip_armor(game.Armor("chainmail armor", "chainmail armor"))
+    player.equip_weapon(game.Weapon("longsword", "1d8"))
+elif player_class == "Rogue":
+    player.equip_armor(game.Armor("leather armor",  "leather armor"))
+    player.equip_weapon(game.Weapon("dagger",  "1d4"))
+elif player_class == "Mage":
+    player.equip_armor(game.Armor("cloth armor", "cloth armor"))
+    player.equip_weapon(game.Weapon("staff", "1d5"))
+
+    # learn a starting spell
+    fireball_spell = game.Spell("Fireball", "2d10", 120)
+    player.learn_spell(fireball_spell)
+else:
+    player.equip_armor(game.Armor("cloth armor", "cloth armor"))
+    player.equip_weapon(game.Weapon("sword", "1d6"))
 
 player.show_stats()
 

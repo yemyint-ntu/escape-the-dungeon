@@ -280,9 +280,9 @@ def encounter(player, monster):
                 print("You tried to dodge but failed!")
 
         elif action == 'spell':
-            if player.attributes.mind >= 6:
-                print("You cast a powerful fireball!")
-                monster.current_health = 0
+            if player.spells[0] is not None or player.spells[1] is not None or player.spells[2] is not None:
+                spell_name = input("Enter the spell name to cast: ").strip()
+                player.cast_spell(spell_name, monster)
             else:
                 print("You fail to cast the spell.")
         else:

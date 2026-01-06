@@ -1,5 +1,5 @@
 import unittest
-from game import Armor, Consumable, PlayerCharacter, Attribute, Spell, Weapon
+from game import Armor, Consumable, NonplayerCharacter, PlayerCharacter, Attribute, Spell, Weapon
 
 class TestPlayerCharacter(unittest.TestCase):
     def test_create_new_player_character(self):
@@ -68,11 +68,42 @@ class TestPlayerCharacter(unittest.TestCase):
     def test_spell(self):
         attr = Attribute(2, 4, 8)
         player = PlayerCharacter("Gwen", "Mage", attr)
-        fireball_spell = Spell("Fireball", "2d3", 120)
+        fireball_spell = Spell("Fireball", "2d4", 120)
         player.learn_spell(fireball_spell)
         self.assertIsNotNone(player.spells[0])
         self.assertEqual(player.spells[0].name, "Fireball")
         player.cast_spell("Fireball", player)  # casting on self for test purposes
+
+    def test_mage_encounter(self):
+        # create a mage player
+        attr = Attribute(2, 4, 8)
+        player = PlayerCharacter("Hale", "Mage", attr)
+        player.equip_armor(Armor("Cloth Armor", "cloth armor"))   
+        player.equip_weapon(Weapon("Wooden Staff", "1d5"))
+        fireball_spell = Spell("Fireball", "2d10", 120)
+        
+        player.learn_spell(fireball_spell)
+        print(f"Player spells: {[spell.name for spell in player.spells if spell is not None]}")
+
+        # create a monster
+        goblin_monster = NonplayerCharacter("goblin", "Beast", Attribute(3, 4, 0))
+        goblin_monster.equip_armor(Armor("leather armor", "leather armor"))
+        goblin_monster.equip_weapon(Weapon("club", "1d6"))
+
+        # simulate encounter
+        while goblin_monster.current_health > 0 and player.current_health > 0:
+            # player casts spell
+            player.cast_spell("Fireball", goblin_monster)
+            if goblin_monster.current_health <= 0:
+                break
+            # monster attacks
+            hit = goblin_monster.attack(player)
+            print(f"{goblin_monster.name} attacks player for {hit} damage.")
+
+        if goblin_monster.current_health <= 0:
+            print("Goblin defeated!")
+        else:
+            print("Player defeated!")
 
 if __name__ == '__main__':
     unittest.main()
