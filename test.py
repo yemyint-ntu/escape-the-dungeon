@@ -1,5 +1,5 @@
 import unittest
-from game import Armor, Consumable, NonplayerCharacter, PlayerCharacter, Attribute, Spell, Weapon
+from game import Armor, Consumable, NonplayerCharacter, PlayerCharacter, Attribute, Skill, Spell, Weapon
 
 class TestPlayerCharacter(unittest.TestCase):
     def test_create_new_player_character(self):
@@ -94,6 +94,34 @@ class TestPlayerCharacter(unittest.TestCase):
         while goblin_monster.current_health > 0 and player.current_health > 0:
             # player casts spell
             player.cast_spell("Fireball", goblin_monster)
+            if goblin_monster.current_health <= 0:
+                break
+            # monster attacks
+            hit = goblin_monster.attack(player)
+            print(f"{goblin_monster.name} attacks player for {hit} damage.")
+
+        if goblin_monster.current_health <= 0:
+            print("Goblin defeated!")
+        else:
+            print("Player defeated!")
+
+    def test_skill_use(self):
+        attr = Attribute(4, 8, 2)
+        player = PlayerCharacter("Iris", "Rogue", attr)
+        
+        backstab_skill = Skill("Backstab", "3d6", 200)
+        player.learn_skill(backstab_skill)
+        self.assertIsNotNone(player.skills[0])
+        self.assertEqual(player.skills[0].name, "Backstab")
+        
+        goblin_monster = NonplayerCharacter("goblin", "Beast", Attribute(3, 4, 0))
+        goblin_monster.equip_armor(Armor("leather armor", "leather armor"))
+        goblin_monster.equip_weapon(Weapon("club", "1d6"))
+        
+        # simulate encounter
+        while goblin_monster.current_health > 0 and player.current_health > 0:
+            # player uses skill
+            player.use_skill("Backstab", goblin_monster)
             if goblin_monster.current_health <= 0:
                 break
             # monster attacks

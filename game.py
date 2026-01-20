@@ -112,14 +112,17 @@ class Character:
             print(f"Strength: {self.attributes.strength}")
             print(f"Agility: {self.attributes.agility}")
             print(f"Mind: {self.attributes.mind}")
+            
             if self.equipments.weapon != None:
                 print(f"Weapon: {self.equipments.weapon.name} ({self.equipments.weapon.damage_dice})")
             else:
                 print("Weapon: None")
+                
             if self.equipments.armor != None:
                 print(f"Armor: {self.equipments.armor.name} ({self.equipments.armor.type})")
             else:
                 print("Armor: None")
+
             print(f"Armor Value: {self.get_armor_value()}")
         else:
             print(f"{self.name} is in combat!")
@@ -136,6 +139,7 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
         self.gold = 0
         self.inventory = []
         self.spells = (None, None, None) # tuple with 3 spell slots
+        self.skills = (None, None, None) # tuple with 3 skill slots
 
     def is_in_inventory(self, item_name):
         for item in self.inventory:
@@ -204,6 +208,24 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
             if spell is not None and spell_name == spell.name:
                 # implement spell casting logic
                 spell.cast(enemy)
+                break
+
+    def learn_skill(self, skill):
+        for i in range(len(self.skills)):
+            if self.skills[i] is None:
+                skill_list = list(self.skills)
+                skill_list[i] = skill
+                self.skills = tuple(skill_list)
+                print(f"You have learned the skill: {skill.name}")
+                return
+        print("You cannot learn more skills. Skill slots are full.")
+
+    def use_skill(self, skill_name, enemy):
+        for skill in self.skills:
+            if skill is not None and skill_name == skill.name:
+                # implement skill usage logic
+                skill.use(enemy)
+                break
         
 
 class NonplayerCharacter(Character):
@@ -222,6 +244,19 @@ class Spell:
         damage = dice_roll(sides_per_die, number_of_dice)
         enemy.current_health -= damage
         print(f"You cast {self.name} and deal {damage} damage to {enemy.name}.")
+
+class Skill:
+    def __init__(self, name, damage_dice, stamina_cost):
+        self.name = name
+        self.damage_dice = damage_dice
+        self.stamina_cost = stamina_cost
+
+    def use(self, enemy):
+        sides_per_die = int(self.damage_dice.split('d')[1]) # 2d6 -> 6
+        number_of_dice = int(self.damage_dice.split('d')[0]) # 2d6 -> 2
+        damage = dice_roll(sides_per_die, number_of_dice)
+        enemy.current_health -= damage
+        print(f"You use {self.name} and deal {damage} damage to {enemy.name}.")
 
 def dice_roll(sides_per_die, number_of_dice=1): # function definition
     total = 0
@@ -266,27 +301,33 @@ def encounter(player, monster):
             break
 
         # print(f"\nYour Health: {health} | Skeleton Health: {monster_health}")
-        action = input("Choose action: attack / dodge / spell: ").lower()
+        action = input("Choose action: attack / dodge / spell / skill: ").lower()
         has_dodged = False
         if action == 'attack':
             damage = player.attack(monster)
             print(f"You swing your weapon and deal {damage} damage!")
-
         elif action == 'dodge':
             has_dodged = player.dodge()
             if has_dodged:
                 print("You dodged the attack!")
             else:
                 print("You tried to dodge but failed!")
-
         elif action == 'spell':
             if player.spells[0] is not None or player.spells[1] is not None or player.spells[2] is not None:
                 spell_name = input("Enter the spell name to cast: ").strip()
                 player.cast_spell(spell_name, monster)
             else:
-                print("You fail to cast the spell.")
+                print("You haven't learnt any spell yet.")
+        elif action == 'skill':
+            if player.skills[0] is not None or player.skills[1] is not None or player.skills[2] is not None:
+                skill_name = input("Enter the skill name to use: ").strip()
+                player.use_skill(skill_name, monster)
+            else:
+                print("You haven't learnt any skill yet.")
         else:
             print("Invalid action. Choose attack, dodge, or spell.")
+
+        
 
         if monster.current_health <= 0:
             print(f"You defeated the {monster.name}!")

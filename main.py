@@ -43,9 +43,17 @@ player = game.PlayerCharacter(character_name, player_class, attr)
 if player_class == "Warrior":
     player.equip_armor(game.Armor("chainmail armor", "chainmail armor"))
     player.equip_weapon(game.Weapon("longsword", "1d8"))
+
+    # learn a starting skill
+    power_strike_skill = game.Skill("Power Strike", "2d6", 150)
+    player.learn_skill(power_strike_skill)
 elif player_class == "Rogue":
     player.equip_armor(game.Armor("leather armor",  "leather armor"))
     player.equip_weapon(game.Weapon("dagger",  "1d4"))
+
+    # learn a starting skill
+    backstab_skill = game.Skill("Backstab", "3d6", 200)
+    player.learn_skill(backstab_skill)
 elif player_class == "Mage":
     player.equip_armor(game.Armor("cloth armor", "cloth armor"))
     player.equip_weapon(game.Weapon("staff", "1d5"))
