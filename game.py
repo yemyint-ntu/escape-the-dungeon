@@ -28,13 +28,24 @@ class Consumable(Item):
         super().__init__(name)
         self.effect = effect
         self.amount = amount
+        self.is_used = False
 
     def use(self, character):
-        if self.effect == "heal":
-            character.current_health += self.amount
-            if character.current_health > character.max_health:
-                character.current_health = character.max_health
-            print(f"{character.name} healed for {self.amount} health points.")
+        if not self.is_used:
+            self.effect(character, self.amount)
+            self.is_used = True
+        else:
+            print(f"The {self.name} has already been used.")
+
+def heal_effect(character, amount):
+    character.current_health += amount
+    if character.current_health > character.max_health:
+        character.current_health = character.max_health
+    print(f"{character.name} healed for {amount} health points. Current health: {character.current_health}/{character.max_health}")
+    
+class HealthPotion(Consumable):
+    def __init__(self, name, amount):
+        super().__init__(name, heal_effect, amount)
 
 class Weapon(Item):
     def __init__(self, name, damage_dice):
@@ -285,13 +296,15 @@ def encounter(player, monster):
 
     loot_list = [
         Armor("White Leather Armor", "leather armor"), 
+        HealthPotion("Small Health Potion", 10),
         Weapon("Sword", "1d6"), 
         Weapon("Dagger", "1d4"), 
+        HealthPotion("Small Health Potion", 10),
         Weapon("Staff", "1d4"), 
         Weapon("Mace", "1d6"), 
         Weapon("Axe", "1d6"),
-        Consumable("Health Potion", "heal", 10),
-        Consumable("Health Potion", "heal", 10),
+        HealthPotion("Small Health Potion", 10),
+        HealthPotion("Medium Health Potion", 20),
     ] # this is a list
 
     while True: #infinite loop

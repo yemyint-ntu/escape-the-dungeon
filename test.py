@@ -1,5 +1,5 @@
 import unittest
-from game import Armor, Consumable, NonplayerCharacter, PlayerCharacter, Attribute, Skill, Spell, Weapon
+from game import Armor, Consumable, HealthPotion, NonplayerCharacter, PlayerCharacter, Attribute, Skill, Spell, Weapon
 
 class TestPlayerCharacter(unittest.TestCase):
     def test_create_new_player_character(self):
@@ -18,16 +18,16 @@ class TestPlayerCharacter(unittest.TestCase):
 
         # ensure player health increases when using a health potion
         player.current_health = 1 # Simulate damage
-        potion = Consumable("Health Potion", "heal", 10)
+        potion = HealthPotion("Small Health Potion", 10)
         player.inventory.append(potion)
-        player.use_item("Health Potion")
+        player.use_item("Small Health Potion")
         self.assertEqual(player.current_health, 11)  # 1 + 10 from potion
 
         # ensure health does not exceed max health
         player.current_health = player.max_health - 5
-        potion2 = Consumable("Health Potion", "heal", 10)
+        potion2 = HealthPotion("Medium Health Potion", 20)
         player.inventory.append(potion2)
-        player.use_item("Health Potion")
+        player.use_item("Medium Health Potion")
         self.assertEqual(player.current_health, player.max_health)  # should not exceed max health
 
     def test_player_equip_weapon(self):

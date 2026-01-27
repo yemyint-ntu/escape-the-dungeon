@@ -41,7 +41,7 @@ else:
 
 player = game.PlayerCharacter(character_name, player_class, attr)
 if player_class == "Warrior":
-    player.equip_armor(game.Armor("chainmail armor", "chainmail armor"))
+    player.equip_armor(game.Armor("chainmail armor", "chainmail"))
     player.equip_weapon(game.Weapon("longsword", "1d8"))
 
     # learn a starting skill
@@ -64,6 +64,8 @@ elif player_class == "Mage":
 else:
     player.equip_armor(game.Armor("cloth armor", "cloth armor"))
     player.equip_weapon(game.Weapon("sword", "1d6"))
+
+player.inventory.append(game.HealthPotion("Small Health Potion", 10))
 
 player.show_stats()
 
@@ -163,15 +165,16 @@ while True:
         else:
             print("Invalid item, try again.")
     elif action.startswith('use '):
-        item = action.removeprefix('use ').lower()
+        item = action.removeprefix('use ')
         if player.is_in_inventory(item):
-            if item == 'key' and current_room == 'Cell':
+            if item.lower() == 'key' and current_room == 'Cell':
                 player.use_item('key')
                 print("You use the key to unlock the door to the Hallway.")
                 rooms['Cell']['east'] = 'Hallway'
                 rooms['Cell']['description'] = rooms['Cell']['description'].replace('locked', 'unlocked')
             else:
-                print(f"You can't use the {item} here.")
+                player.use_item(item)
+
         else:
             print(f"You don't have the {item} in your inventory.")
     elif action == 'inventory':
