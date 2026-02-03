@@ -47,6 +47,18 @@ class HealthPotion(Consumable):
     def __init__(self, name, amount):
         super().__init__(name, heal_effect, amount)
 
+def deal_damage_effect(enemy, damage_dice):
+    number_of_dice = int(damage_dice.split('d')[0])
+    sides_per_die = int(damage_dice.split('d')[1])
+    damage = dice_roll(sides_per_die, number_of_dice)
+    enemy.current_health -= damage
+    print(f"{enemy.name} takes {damage} damage. Current health: {enemy.current_health}")
+
+#TODO : fix the damage dealing logic
+class ThrowingKnife(Consumable):
+    def __init__(self, name, damage_dice):
+        super().__init__(name, deal_damage_effect, damage_dice)
+
 class Weapon(Item):
     def __init__(self, name, damage_dice):
         super().__init__(name)
@@ -305,6 +317,7 @@ def encounter(player, monster):
         Weapon("Axe", "1d6"),
         HealthPotion("Small Health Potion", 10),
         HealthPotion("Medium Health Potion", 20),
+        ThrowingKnife("Throwing Knife", "2d4"),
     ] # this is a list
 
     while True: #infinite loop
@@ -314,7 +327,7 @@ def encounter(player, monster):
             break
 
         # print(f"\nYour Health: {health} | Skeleton Health: {monster_health}")
-        action = input("Choose action: attack / dodge / spell / skill: ").lower()
+        action = input("Choose action: attack / dodge / spell / skill / use [consumable]: ").lower()
         has_dodged = False
         if action == 'attack':
             damage = player.attack(monster)
@@ -337,10 +350,14 @@ def encounter(player, monster):
                 player.use_skill(skill_name, monster)
             else:
                 print("You haven't learnt any skill yet.")
+        elif action.startswith('use '):
+            item_name = action.removeprefix('use ').strip()
+            if player.is_in_inventory(item_name):
+                player.use_item(item_name)
+            else:
+                print(f"You don't have the {item_name} in your inventory.")
         else:
-            print("Invalid action. Choose attack, dodge, or spell.")
-
-        
+            print("Invalid action. Choose attack, dodge, spell, skill, or use [consumable].")
 
         if monster.current_health <= 0:
             print(f"You defeated the {monster.name}!")

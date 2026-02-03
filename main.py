@@ -66,6 +66,7 @@ else:
     player.equip_weapon(game.Weapon("sword", "1d6"))
 
 player.inventory.append(game.HealthPotion("Small Health Potion", 10))
+player.inventory.append(game.ThrowingKnife("Throwing Knife", "2d4"))
 
 player.show_stats()
 
