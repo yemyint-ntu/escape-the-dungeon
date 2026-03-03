@@ -2,7 +2,8 @@ import game
 import random
 
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer
+from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
+from textual.widgets import Header, Footer, Input, Markdown, Button
 
 class TextAdventureApp(App):
 
@@ -11,8 +12,69 @@ class TextAdventureApp(App):
 
     def compose(self) -> ComposeResult:
         yield Header()
+        yield HorizontalGroup(
+            RecentHistoryWindow(),
+            SidebarWindow()
+        )
         yield Footer()
 
+class RecentHistoryWindow(VerticalGroup):
+
+    DEFAULT_CSS = """
+    RecentHistoryWindow {
+        width: 70%;
+        border: round $accent;
+        padding: 1;
+        dock: left;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield VerticalScroll(id="history-scroll")
+        yield Input(placeholder="Enter your command here...", id="command-input")
+
+    def on_mount(self) -> None:
+        self.border_title = "Game"
+
+class SidebarWindow(VerticalGroup):
+    DEFAULT_CSS = """
+    SidebarWindow {
+        width: 30%;
+        height: 100%;
+        dock: right;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield StatusWindow()
+        yield CharacterSheetWindow()
+
+class Response(Markdown):
+    """Markdown widget for displaying game responses."""
+
+class StatusWindow(VerticalScroll):
+    DEFAULT_CSS = """
+    StatusWindow {
+        height: 40%;
+        border: round $accent;
+        padding: 1;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Response("Room Status\n\n", id="status")
+
+class CharacterSheetWindow(VerticalScroll):
+    DEFAULT_CSS = """
+    CharacterSheetWindow {
+        height: 60%;
+        border: round $accent;
+        padding: 1;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Response("Character Stats\n\n", id="character-stats")
 
 def game_loop():
     # accept input from the player using the following prompt:
