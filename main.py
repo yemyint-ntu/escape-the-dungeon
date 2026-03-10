@@ -1,7 +1,7 @@
 import game
 import random
 
-from textual.app import App, ComposeResult
+from textual.app import App, ComposeResult, on
 from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
 from textual.widgets import Header, Footer, Input, Markdown, Button
 
@@ -9,6 +9,7 @@ class TextAdventureApp(App):
 
     def __init__(self):
         super().__init__()
+        self.command_history = []
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -17,6 +18,39 @@ class TextAdventureApp(App):
             SidebarWindow()
         )
         yield Footer()
+
+    def on_mount(self) -> None:
+        # set focus to input when the app starts
+        self.query_one("#command-input").focus()
+
+    @on(Input.Submitted, "#command-input")
+    def handle_command(self, event: Input.Submitted) -> None:
+        command = event.value.strip()
+        if not command: # if the command is empty, ignore it and return
+            return
+        
+        # clear the input field after submission
+        event.input.value = ""
+
+        # add the command to the history
+        self.command_history.append(f"> **{command}**")
+
+        if command.lower() == "start":
+            response = "Welcome to Escape the Dungeon! Your adventure begins now..."
+            self.command_history.append(response)
+        elif command.lower() in ["quit", "exit"]:
+            response = "Press Ctrl+Q to exit."
+            self.command_history.append(response)
+
+        # update the history display
+        self.update_history()
+
+    def update_history(self) -> None:
+        # get the history scroll container
+        history_scroll = self.query_one("#history-scroll")
+        # update the history scroll container with the new command
+        history_scroll.mount(Response("\n\n".join(self.command_history[-2:])))
+        history_scroll.scroll_end(animate=False)
 
 class RecentHistoryWindow(VerticalGroup):
 
@@ -64,6 +98,9 @@ class StatusWindow(VerticalScroll):
     def compose(self) -> ComposeResult:
         yield Response("Room Status\n\n", id="status")
 
+    def on_mount(self) -> None:
+        self.border_title = "Status"
+
 class CharacterSheetWindow(VerticalScroll):
     DEFAULT_CSS = """
     CharacterSheetWindow {
@@ -75,6 +112,10 @@ class CharacterSheetWindow(VerticalScroll):
 
     def compose(self) -> ComposeResult:
         yield Response("Character Stats\n\n", id="character-stats")
+
+    def on_mount(self) -> None:
+        self.border_title = "Character Sheet"
+
 
 def game_loop():
     # accept input from the player using the following prompt:
