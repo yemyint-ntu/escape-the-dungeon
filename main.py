@@ -10,6 +10,7 @@ class TextAdventureApp(App):
     def __init__(self):
         super().__init__()
         self.command_history = []
+        self.game_engine = GameEngine()
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -33,23 +34,20 @@ class TextAdventureApp(App):
         event.input.value = ""
 
         # add the command to the history
-        self.command_history.append(f"> **{command}**")
+        command_text = f"> **{command}**\n\n"
+        self.command_history.append(command_text)
 
-        if command.lower() == "start":
-            response = "Welcome to Escape the Dungeon! Your adventure begins now..."
-            self.command_history.append(response)
-        elif command.lower() in ["quit", "exit"]:
-            response = "Press Ctrl+Q to exit."
-            self.command_history.append(response)
+        response = self.game_engine.response_to_command(command)
+        self.command_history.append(response)
 
         # update the history display
-        self.update_history()
+        self.update_history(command_text, response)
 
-    def update_history(self) -> None:
+    def update_history(self, command_text: str, response: str) -> None:
         # get the history scroll container
         history_scroll = self.query_one("#history-scroll")
         # update the history scroll container with the new command
-        history_scroll.mount(Response("\n\n".join(self.command_history[-2:])))
+        history_scroll.mount(Response(command_text + response))
         history_scroll.scroll_end(animate=False)
 
 class RecentHistoryWindow(VerticalGroup):
@@ -116,6 +114,60 @@ class CharacterSheetWindow(VerticalScroll):
     def on_mount(self) -> None:
         self.border_title = "Character Sheet"
 
+class GameEngine:
+    def __init__(self):
+        self.player = None
+        self.current_room = 'Cell'
+        self.rooms = {
+            'Cell': {
+                'description': 'A cold, dark cell. The door is locked.',
+                'east': 'Hallway (locked)',
+                'item': 'key'
+            },
+            'Hallway': {
+                'description': 'A dim hallway. A heavy gate blocks the north path.',
+                'west': 'Cell',
+                'encounter': True,
+                'north': 'Armory'
+            },
+            'Armory': {
+                'description': 'A room full of rusty weapons and a glowing staff.',
+                'south': 'Hallway',
+                'item': 'magic staff',
+                'encounter': True,
+                'east': 'Exit'
+            },
+            'Exit': {
+                'description': 'A magical door that needs a spell to open.',
+                'west': 'Armory'
+            }
+        }
+        
+        # Monsters
+        skeleton_monster = game.NonplayerCharacter("skeleton", "Undead", game.Attribute(4, 2, 0))
+        skeleton_monster.equip_armor(game.Armor("leather armor", "leather armor"))
+        skeleton_monster.equip_weapon(game.Weapon("iron sword", "1d6"))
+
+        zombie_monster = game.NonplayerCharacter("zombie", "Undead", game.Attribute(5, 1, 0))
+        zombie_monster.equip_armor(game.Armor("cloth armor", "cloth armor"))
+        zombie_monster.equip_weapon(game.Weapon("claws", "1d4"))
+
+        goblin_monster = game.NonplayerCharacter("goblin", "Beast", game.Attribute(3, 4, 0))
+        goblin_monster.equip_armor(game.Armor("leather armor", "leather armor"))
+        goblin_monster.equip_weapon(game.Weapon("club", "1d6"))
+        
+        self.monsters = [ skeleton_monster, zombie_monster, goblin_monster, skeleton_monster, zombie_monster, skeleton_monster ]
+        self.state = "not_started"
+
+
+    def response_to_command(self, command: str) -> str:
+        command = command.strip().lower()
+        if command == "start":
+            return "Welcome to Escape the Dungeon! Your adventure begins now..."
+        elif command in ["quit", "exit"]:
+            return "Press Ctrl+Q to exit."
+        else:
+            return "Unknown command. Try 'start' to begin your adventure or 'exit' to quit."
 
 def game_loop():
     # accept input from the player using the following prompt:
