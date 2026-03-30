@@ -249,6 +249,26 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
                 # implement skill usage logic
                 skill.use(enemy)
                 break
+
+    def get_status(self):
+        stats = f"**{self.name}** - {self.character_class}\n\n"
+        stats += f"❤️  Health: {self.current_health}/{self.max_health}\n\n"
+        stats += f"💰 Gold: {self.gold}\n\n"
+        stats += f"**Attributes:**\n"
+        stats += f"⚔️  Strength: {self.attributes.strength}\n"
+        stats += f"🏃 Agility: {self.attributes.agility}\n"
+        stats += f"🧠 Mind: {self.attributes.mind}\n\n"
+        
+        stats += f"**Equipment:**\n"
+        if self.equipments.weapon:
+            stats += f"🗡️  {self.equipments.weapon.name}\n"
+        if self.equipments.armor:
+            stats += f"🛡️  {self.equipments.armor.name}\n"
+        
+        # Show inventory count
+        stats += f"\n📦 Inventory: {len(self.inventory)} items"
+
+        return stats
         
 
 class NonplayerCharacter(Character):

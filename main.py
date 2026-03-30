@@ -38,10 +38,20 @@ class TextAdventureApp(App):
         self.command_history.append(command_text)
 
         response = self.game_engine.response_to_command(command)
-        self.command_history.append(response)
+        self.command_history.append(response["game_response"])
 
         # update the history display
-        self.update_history(command_text, response)
+        self.update_history(command_text, response["game_response"])
+
+        # if there is a status update, update the status window
+        if "status_update" in response:
+            status_window = self.query_one("#status")
+            status_window.update(response["status_update"])
+        
+        # if there is a character update, update the character sheet window
+        if "character_update" in response:
+            character_sheet_window = self.query_one("#character-stats")
+            character_sheet_window.update(response["character_update"])
 
     def update_history(self, command_text: str, response: str) -> None:
         # get the history scroll container
@@ -115,6 +125,14 @@ class CharacterSheetWindow(VerticalScroll):
         self.border_title = "Character Sheet"
 
 class GameEngine:
+    # states
+    NOT_STARTED = "not_started"
+    CHAR_CREATION = "character_creation"
+    EXPLORATION = "exploration"
+    COMBAT = "combat"
+    COMPLETED = "completed"
+    GAME_OVER = "game_over"
+
     def __init__(self):
         self.player = None
         self.current_room = 'Cell'
@@ -157,17 +175,35 @@ class GameEngine:
         goblin_monster.equip_weapon(game.Weapon("club", "1d6"))
         
         self.monsters = [ skeleton_monster, zombie_monster, goblin_monster, skeleton_monster, zombie_monster, skeleton_monster ]
-        self.state = "not_started"
+        self.state = self.NOT_STARTED
 
-
-    def response_to_command(self, command: str) -> str:
+    def response_to_command(self, command: str) -> dict:
         command = command.strip().lower()
-        if command == "start":
-            return "Welcome to Escape the Dungeon! Your adventure begins now..."
-        elif command in ["quit", "exit"]:
-            return "Press Ctrl+Q to exit."
-        else:
-            return "Unknown command. Try 'start' to begin your adventure or 'exit' to quit."
+        
+        if command in ["quit", "exit"]:
+            return {"game_response": "Press Ctrl+Q to exit."}
+
+        # This method will process the player's command based on the current game state
+        if self.state == self.NOT_STARTED:
+            if command == "start":
+                self.state = self.CHAR_CREATION
+                # default character creation for now, can be expanded to allow player choice later
+                self.player = game.PlayerCharacter("Adventurer", "Warrior", game.Attribute(8, 4, 2))
+                self.state = self.EXPLORATION
+                return {
+                    "game_response": "Welcome to Escape the Dungeon! Your adventure begins now...",
+                    "status_update": self.rooms[self.current_room]['description'],
+                    "character_update": self.player.get_status()
+                }
+            else:
+                return {"game_response": "Please type 'start' to begin the game."}
+        elif self.state == self.EXPLORATION:
+            # Handle exploration commands
+            pass
+        elif self.state == self.COMBAT:
+            # Handle combat commands
+            pass
+
 
 def game_loop():
     # accept input from the player using the following prompt:
