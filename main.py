@@ -179,9 +179,6 @@ class GameEngine:
 
     def response_to_command(self, command: str) -> dict:
         command = command.strip().lower()
-        
-        if command in ["quit", "exit"]:
-            return {"game_response": "Press Ctrl+Q to exit."}
 
         # This method will process the player's command based on the current game state
         if self.state == self.NOT_STARTED:
@@ -189,21 +186,113 @@ class GameEngine:
                 self.state = self.CHAR_CREATION
                 # default character creation for now, can be expanded to allow player choice later
                 self.player = game.PlayerCharacter("Adventurer", "Warrior", game.Attribute(8, 4, 2))
+                self.player.equip_armor(game.Armor("chainmail armor", "chainmail"))
+                self.player.equip_weapon(game.Weapon("longsword", "1d8"))
+
+                # learn a starting skill
+                power_strike_skill = game.Skill("Power Strike", "2d6", 150)
+                self.player.learn_skill(power_strike_skill)
+
                 self.state = self.EXPLORATION
+                response = "Welcome to Escape the Dungeon! Your adventure begins now..."
+
+                room_status = f"You are in the {self.current_room}.\n\n{self.rooms[self.current_room]['description']}"
+                if 'item' in self.rooms[self.current_room]:
+                    room_status += f"\nYou see a {self.rooms[self.current_room]['item']} here."
+
+                response += "\n\nAvailable actions: go [direction], take [item], use [item], stats, inventory, equip [weapon/armor], exit."
+                response += "\n\nWhat do you want to do?"
+
                 return {
-                    "game_response": "Welcome to Escape the Dungeon! Your adventure begins now...",
-                    "status_update": self.rooms[self.current_room]['description'],
+                    "game_response": response,
+                    "status_update": room_status,
                     "character_update": self.player.get_status()
                 }
             else:
                 return {"game_response": "Please type 'start' to begin the game."}
         elif self.state == self.EXPLORATION:
             # Handle exploration commands
-            pass
+            if command.startswith('go '):
+                direction = command.split()[1].lower()
+                if direction in self.rooms[self.current_room]:
+                    if self.rooms[self.current_room][direction].lower().endswith('(locked)'):
+                        return {"game_response": "The path is locked. You need a key to proceed."}
+                    else:
+                        self.current_room = self.rooms[self.current_room][direction]
+                        response = f"You move {direction} to the {self.current_room}."
+
+                        if self.current_room == 'Exit':
+                            self.state = self.COMPLETED
+                            response += "\n\nCongratulations, brave adventurer! You have escaped the dungeon."
+                            return {"game_response": response}
+
+                        room_status = f"You are in the {self.current_room}.\n\n{self.rooms[self.current_room]['description']}"
+                        if 'item' in self.rooms[self.current_room]:
+                            room_status += f"\nYou see a {self.rooms[self.current_room]['item']} here."
+
+                        response += "\n\nAvailable actions: go [direction], take [item], use [item], stats, inventory, equip [weapon/armor], exit."
+                        response += "\n\nWhat do you want to do?"
+
+                        return {
+                            "game_response": response,
+                            "status_update": room_status
+                        }
+                
+            # if command == 'stats':
+            #     player.show_stats()
+            #     continue
+            # elif command.startswith('go '):
+            #     direction = command.split()[1].lower()
+            #     if direction in rooms[current_room]:
+            #         if rooms[current_room][direction].lower().endswith('(locked)'):
+            #             print("The path is locked. You need a key to proceed.")
+            #         else:
+            #             current_room = rooms[current_room][direction]
+            #             if current_room == 'Exit':
+            #                 print("Congratulations, brave adventurer! You have escaped the dungeon.")
+            #                 break
+            #     else:
+            #         print("Invalid direction, try again.")
+            # elif command.startswith('take '):
+            #     item = command.removeprefix('take ').lower()
+            #     if 'item' in rooms[current_room] and item == rooms[current_room]['item']:
+            #         player.inventory.append(game.QuestItem(rooms[current_room].pop('item')))
+            #         print(f"You have taken the {item}.")
+            #     else:
+            #         print("Invalid item, try again.")
+            # elif command.startswith('use '):
+            #     item = command.removeprefix('use ')
+            #     if player.is_in_inventory(item):
+            #         if item.lower() == 'key' and current_room == 'Cell':
+            #             player.use_item('key')
+            #             print("You use the key to unlock the door to the Hallway.")
+            #             rooms['Cell']['east'] = 'Hallway'
+            #             rooms['Cell']['description'] = rooms['Cell']['description'].replace('locked', 'unlocked')
+            #         else:
+            #             player.use_item(item)
+
+            #     else:
+            #         print(f"You don't have the {item} in your inventory.")
+            # elif command == 'inventory':
+            #     if player.inventory:
+            #         print("Your inventory contains:")
+            #         for item in player.inventory:
+            #             print(f"- {item}")
+            #     else:
+            #         print("Your inventory is empty.")
+            # elif command.startswith('equip '):
+            #     equip_item = command.removeprefix('equip ').lower()
+            #     if player.is_in_inventory(equip_item):
+            #         player.equip(equip_item)
+            
         elif self.state == self.COMBAT:
             # Handle combat commands
             pass
 
+        if command in ["quit", "exit"]:
+            return {"game_response": "Press Ctrl+Q to exit."}
+        else:
+            return {"game_response": "Command not recognized. Try again."}
 
 def game_loop():
     # accept input from the player using the following prompt:
