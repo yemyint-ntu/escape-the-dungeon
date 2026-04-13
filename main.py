@@ -237,29 +237,51 @@ class GameEngine:
                             "game_response": response,
                             "status_update": room_status
                         }
-                
-            # if command == 'stats':
-            #     player.show_stats()
-            #     continue
-            # elif command.startswith('go '):
-            #     direction = command.split()[1].lower()
-            #     if direction in rooms[current_room]:
-            #         if rooms[current_room][direction].lower().endswith('(locked)'):
-            #             print("The path is locked. You need a key to proceed.")
-            #         else:
-            #             current_room = rooms[current_room][direction]
-            #             if current_room == 'Exit':
-            #                 print("Congratulations, brave adventurer! You have escaped the dungeon.")
-            #                 break
-            #     else:
-            #         print("Invalid direction, try again.")
-            # elif command.startswith('take '):
-            #     item = command.removeprefix('take ').lower()
-            #     if 'item' in rooms[current_room] and item == rooms[current_room]['item']:
-            #         player.inventory.append(game.QuestItem(rooms[current_room].pop('item')))
-            #         print(f"You have taken the {item}.")
-            #     else:
-            #         print("Invalid item, try again.")
+            elif command.startswith('take '):
+                item = command.removeprefix('take ').lower()
+                if 'item' in self.rooms[self.current_room] and item == self.rooms[self.current_room]['item']:
+                    self.player.inventory.append(game.QuestItem(self.rooms[self.current_room].pop('item')))
+                    return {
+                            "game_response": f"You have taken the {item}.",
+                            "character_update": self.player.get_status()
+                        }
+                else:
+                    return {"game_response": "Invalid item, try again."}
+            elif command.startswith('use '):
+                item = command.removeprefix('use ') 
+                if self.player.is_in_inventory(item):
+                    if item.lower() == 'key' and self.current_room == 'Cell':
+                        self.player.use_item('key')
+                        self.rooms['Cell']['east'] = 'Hallway'
+                        self.rooms['Cell']['description'] = self.rooms['Cell']['description'].replace('locked', 'unlocked')
+                        return {
+                            "game_response": "You use the key to unlock the door to the Hallway.",
+                            "status_update": f"You are in the {self.current_room}.\n\n{self.rooms[self.current_room]['description']}",
+                            "character_update": self.player.get_status()
+                        }
+                    else:
+                        self.player.use_item(item)
+                        return {
+                            "game_response": f"You use the {item}.",
+                            "character_update": self.player.get_status()
+                        }
+                else:
+                    return {"game_response": f"You don't have the {item} in your inventory."}
+            elif command == 'inventory':
+                if self.player.inventory:
+                    inventory_list = "\n".join(f"- {item}" for item in self.player.inventory)
+                    return {"game_response": f"Your inventory contains:\n{inventory_list}"}
+                else:
+                    return {"game_response": "Your inventory is empty."}
+            elif command.startswith('equip '):
+                equip_item = command.removeprefix('equip ').lower()
+                if self.player.is_in_inventory(equip_item):
+                    self.player.equip(equip_item) # TODO: this method needs to return the equip status (success/fail)
+                    return {"game_response": f"You have equipped the {equip_item}.",
+                            "character_update": self.player.get_status()}
+                else:
+                    return {"game_response": f"You don't have the {equip_item} in your inventory."}
+
             # elif command.startswith('use '):
             #     item = command.removeprefix('use ')
             #     if player.is_in_inventory(item):
