@@ -199,7 +199,7 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
         else:
             print("No weapon is currently equipped.")
 
-    def equip(self, item_name):
+    def equip(self, item_name) -> bool:
         for index, item in enumerate(self.inventory):
             if item.name.lower() == item_name:
                 if isinstance(item, Weapon):
@@ -207,14 +207,17 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
                     del self.inventory[index]
                     self.equip_weapon(item)
                     print(f"You have equipped the weapon: {item.name}")
+                    return True
                 elif isinstance(item, Armor):
                     self.unequip_armor()
                     del self.inventory[index]
                     self.equip_armor(item)
                     print(f"You have equipped the armor: {item.name}")
+                    return True
                 else:
                     print(f"You cannot equip the item: {item.name}")
                 break
+        return False
 
     def learn_spell(self, spell):
         for i in range(len(self.spells)):
