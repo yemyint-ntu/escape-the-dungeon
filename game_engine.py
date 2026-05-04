@@ -9,8 +9,11 @@ class GameState:
     COMPLETED = "completed"
     GAME_OVER = "game_over"
 
+    def __init__(self):
+        self.available_actions = []
+
     def get_available_actions(self) -> str:
-        pass
+        return f"Available actions: {', '.join(self.available_actions)}"
 
     def response_to_command(self, command: str) -> dict:
         # This method will process the player's command based on the current game state
@@ -20,14 +23,65 @@ class NotStartedState(GameState):
     def __init__(self):
         self.available_actions = ["start"]
 
-    def get_available_actions(self) -> str:
-        return f"Available actions: {', '.join(self.available_actions)}"
-
     def response_to_command(self, command: str) -> dict:
         if command == "start":
+            # transition to character creation state
             return {"game_response": "Welcome to Escape the Dungeon! Your adventure begins now..."}
         else:
             return {"game_response": "Please type 'start' to begin the game."}
+        
+class CharacterCreationState(GameState):
+    def __init__(self):
+        self.available_actions = []
+
+    def response_to_command(self, command: str) -> dict:
+        # Handle character creation commands
+        pass
+
+class ExplorationState(GameState):
+    def __init__(self):
+        self.available_actions = ["go [direction]", "take [item]", "use [item]", "inventory", "equip [weapon/armor]"]
+
+    def response_to_command(self, command: str) -> dict:
+        # Handle exploration commands
+        if command.startswith('go '):
+            direction = command.split()[1].lower()
+            return self._go_to(direction)
+
+        elif command.startswith('take '):
+            item = command.removeprefix('take ').lower()
+            return self._take(item)
+        
+        elif command.startswith('use '):
+            item = command.removeprefix('use ') 
+            return self._use(item)
+        
+        elif command == 'inventory':
+            return self._inventory()
+        
+        elif command.startswith('equip '):
+            equip_item = command.removeprefix('equip ').lower()
+            return self._equip(equip_item)
+    
+    def _go_to(self, direction: str) -> dict:
+        # Handle movement logic
+        pass
+
+    def _take(self, item: str) -> dict:
+        # Handle item pickup logic
+        pass
+
+    def _use(self, item: str) -> dict:
+        # Handle item usage logic
+        pass
+
+    def _inventory(self) -> dict:
+        # Handle inventory display logic
+        pass
+
+    def _equip(self, equip_item: str) -> dict:
+        # Handle equip logic
+        pass
 
 class GameEngine:
     # states
