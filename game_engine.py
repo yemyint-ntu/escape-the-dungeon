@@ -1,3 +1,5 @@
+from click import command
+
 import game
 import random
 
@@ -9,7 +11,8 @@ class GameState:
     COMPLETED = "completed"
     GAME_OVER = "game_over"
 
-    def __init__(self):
+    def __init__(self, game_engine: 'GameEngine'):
+        self.game_engine = game_engine
         self.available_actions = []
 
     def get_available_actions(self) -> str:
@@ -20,18 +23,38 @@ class GameState:
         pass
 
 class NotStartedState(GameState):
-    def __init__(self):
+    def __init__(self, game_engine: 'GameEngine'):
+        super().__init__(game_engine)
         self.available_actions = ["start"]
 
     def response_to_command(self, command: str) -> dict:
         if command == "start":
+            response = "Welcome to Escape the Dungeon! Your adventure begins now..."
             # transition to character creation state
-            return {"game_response": "Welcome to Escape the Dungeon! Your adventure begins now..."}
+            next_state = CharacterCreationState(self.game_engine)
+            self.game_engine.create_player()
+
+            # go to exploration state after character creation
+            next_state = ExplorationState(self.game_engine)
+            room_status = self.game_engine.get_room_status()
+            # add available actions to response
+            response += "\n\n" + next_state.get_available_actions()
+            response += "\n\nWhat do you want to do?"
+
+            character_update = self.game_engine.player.get_status()
+
+            return {
+                "game_response": response,
+                "status_update": room_status,
+                "character_update": character_update,
+                "next_state": next_state
+            }
         else:
             return {"game_response": "Please type 'start' to begin the game."}
         
 class CharacterCreationState(GameState):
-    def __init__(self):
+    def __init__(self, game_engine: 'GameEngine'):
+        super().__init__(game_engine)
         self.available_actions = []
 
     def response_to_command(self, command: str) -> dict:
@@ -39,7 +62,8 @@ class CharacterCreationState(GameState):
         pass
 
 class ExplorationState(GameState):
-    def __init__(self):
+    def __init__(self, game_engine: 'GameEngine'):
+        super().__init__(game_engine)
         self.available_actions = ["go [direction]", "take [item]", "use [item]", "inventory", "equip [weapon/armor]"]
 
     def response_to_command(self, command: str) -> dict:
@@ -64,8 +88,23 @@ class ExplorationState(GameState):
             return self._equip(equip_item)
     
     def _go_to(self, direction: str) -> dict:
-        # Handle movement logic
-        pass
+        response = self.game_engine.go_to(direction)
+        room_status = self.game_engine.get_room_status()
+        next_state = self
+
+        if self.game_engine.is_encounter():
+            next_state = CombatState(self.game_engine)
+            self.game_engine.enemy = random.choice(self.game_engine.monsters)
+            response += f"\n\nAs you enter the {self.game_engine.current_room}, you encounter a {self.game_engine.enemy.name}!"
+        else:
+            response += "\n\n" + self.get_available_actions()
+            response += "\n\nWhat do you want to do?"
+
+        return {
+            "game_response": response,
+            "status_update": room_status,
+            "next_state": next_state
+        }
 
     def _take(self, item: str) -> dict:
         # Handle item pickup logic
@@ -81,6 +120,15 @@ class ExplorationState(GameState):
 
     def _equip(self, equip_item: str) -> dict:
         # Handle equip logic
+        pass
+
+class CombatState(GameState):
+    def __init__(self, game_engine: 'GameEngine'):
+        super().__init__(game_engine)
+        self.available_actions = ["attack", "use [consumable]", "dodge", "spell", "skill"]
+
+    def response_to_command(self, command: str) -> dict:
+        # Handle combat commands
         pass
 
 class GameEngine:
@@ -134,12 +182,48 @@ class GameEngine:
         goblin_monster.equip_weapon(game.Weapon("club", "1d6"))
         
         self.monsters = [ skeleton_monster, zombie_monster, goblin_monster, skeleton_monster, zombie_monster, skeleton_monster ]
-        self.state = self.NOT_STARTED
+        self.state = NotStartedState(self)
         self.enemy = None
 
     def response_to_command(self, command: str) -> dict:
         command = command.strip().lower()
+        result = self.state.response_to_command(command)
+        if "next_state" in result:
+            self.state = result["next_state"]
+        return result
+    
+    def create_player(self):
+        # default character creation for now, can be expanded to allow player choice later
+        self.player = game.PlayerCharacter("Adventurer", "Warrior", game.Attribute(8, 4, 2))
+        self.player.equip_armor(game.Armor("chainmail armor", "chainmail"))
+        self.player.equip_weapon(game.Weapon("longsword", "1d8"))
 
+        # learn a starting skill
+        power_strike_skill = game.Skill("Power Strike", "2d6", 150)
+        self.player.learn_skill(power_strike_skill)
+
+    def get_room_status(self) -> str:
+        room_status = f"You are in the {self.current_room}.\n\n{self.rooms[self.current_room]['description']}"
+        if 'item' in self.rooms[self.current_room]:
+            room_status += f"\nYou see a {self.rooms[self.current_room]['item']} here."
+        return room_status
+    
+    def go_to(self, direction: str) -> str:
+        if direction in self.rooms[self.current_room]:
+            if self.rooms[self.current_room][direction].lower().endswith('(locked)'):
+                response = "The path is locked. You need a key to proceed."
+            else:
+                self.current_room = self.rooms[self.current_room][direction]
+                response = f"You move {direction} to the {self.current_room}."
+
+            return response
+        else:
+            return "You can't go that way."
+        
+    def is_encounter(self) -> bool:
+        return 'encounter' in self.rooms[self.current_room] and self.rooms[self.current_room]['encounter'] == True
+
+"""
         # This method will process the player's command based on the current game state
         if self.state == self.NOT_STARTED:
             if command == "start":
@@ -266,3 +350,6 @@ class GameEngine:
             return {"game_response": "Press Ctrl+Q to exit."}
         else:
             return {"game_response": "Command not recognized. Try again."}
+"""
+
+
