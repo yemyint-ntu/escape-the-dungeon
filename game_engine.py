@@ -68,55 +68,78 @@ class ExplorationState(GameState):
 
     def response_to_command(self, command: str) -> dict:
         # Handle exploration commands
+        next_state = self # current state
+        result = {}
+
         if command.startswith('go '):
             direction = command.split()[1].lower()
-            return self._go_to(direction)
+            result = self._go_to(direction)
 
         elif command.startswith('take '):
             item = command.removeprefix('take ').lower()
-            return self._take(item)
+            result = self._take(item)
         
         elif command.startswith('use '):
             item = command.removeprefix('use ') 
-            return self._use(item)
+            result = self._use(item)
         
         elif command == 'inventory':
-            return self._inventory()
+            result = self._inventory()
         
         elif command.startswith('equip '):
             equip_item = command.removeprefix('equip ').lower()
-            return self._equip(equip_item)
+            result = self._equip(equip_item)
+        
+        response = result["game_response"]
+        if "next_state" in result:
+            next_state = result["next_state"] 
+        # add available actions to response
+        response += "\n\n" + next_state.get_available_actions()
+        response += "\n\nWhat do you want to do?"
+        character_update = self.game_engine.player.get_status()
+        room_status = self.game_engine.get_room_status()
+
+        return {
+            "game_response": response,
+            "room_status": room_status,
+            "character_update": character_update,
+            "naxt_state": next_state
+        }
     
     def _go_to(self, direction: str) -> dict:
         response = self.game_engine.go_to(direction)
-        room_status = self.game_engine.get_room_status()
         next_state = self
 
         if self.game_engine.is_encounter():
             next_state = CombatState(self.game_engine)
             self.game_engine.enemy = random.choice(self.game_engine.monsters)
             response += f"\n\nAs you enter the {self.game_engine.current_room}, you encounter a {self.game_engine.enemy.name}!"
-        else:
-            response += "\n\n" + self.get_available_actions()
-            response += "\n\nWhat do you want to do?"
 
         return {
             "game_response": response,
-            "status_update": room_status,
             "next_state": next_state
         }
 
     def _take(self, item: str) -> dict:
         # Handle item pickup logic
-        pass
+        response = self.game_engine.take(item)
+        return {
+            "game_response": response,
+        }
 
     def _use(self, item: str) -> dict:
         # Handle item usage logic
-        pass
+        response = self.game_engine.use(item)
+        return {
+            "game_response": response,
+        }
 
     def _inventory(self) -> dict:
         # Handle inventory display logic
-        pass
+        response = self.game_engine.show_inventory()
+        return {
+            "game_response": response,
+        }
 
     def _equip(self, equip_item: str) -> dict:
         # Handle equip logic
@@ -222,6 +245,33 @@ class GameEngine:
         
     def is_encounter(self) -> bool:
         return 'encounter' in self.rooms[self.current_room] and self.rooms[self.current_room]['encounter'] == True
+    
+    def take(self, item: str) -> str:
+        if 'item' in self.rooms[self.current_room] and item == self.rooms[self.current_room]['item']:
+            self.player.inventory.append(game.QuestItem(self.rooms[self.current_room].pop('item')))
+            return f"You have taken the {item}."
+        else:
+            return "Invalid item, try again."
+    
+    def use(self, item: str) -> str:
+        if self.player.is_in_inventory(item):
+            if item.lower() == 'key' and self.current_room == 'Cell':
+                self.player.use_item('key')
+                self.rooms['Cell']['east'] = 'Hallway'
+                self.rooms['Cell']['description'] = self.rooms['Cell']['description'].replace('locked', 'unlocked')
+                return "You use the key to unlock the door to the Hallway."
+            else:
+                self.player.use_item(item)
+                return f"You use the {item}."
+        else:
+            return f"You don't have the {item} in your inventory."
+        
+    def show_inventory(self) -> str:
+        if self.player.inventory:
+            inventory_list = "\n".join(f"- {item}" for item in self.player.inventory)
+            return f"Your inventory contains:\n{inventory_list}"
+        else:
+            return "Your inventory is empty."
 
 """
         # This method will process the player's command based on the current game state
