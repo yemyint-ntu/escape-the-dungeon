@@ -156,6 +156,9 @@ class Character:
     def end_combat(self):
         self.is_in_combat = False
 
+    def is_alive(self):
+        return self.current_health > 0
+
 class PlayerCharacter(Character): # inheritance - parent class is Character
     def __init__(self, name, character_class, attributes):
         super().__init__(name, character_class, attributes) # super() means parent class Character

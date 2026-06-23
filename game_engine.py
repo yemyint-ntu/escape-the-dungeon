@@ -102,9 +102,9 @@ class ExplorationState(GameState):
 
         return {
             "game_response": response,
-            "room_status": room_status,
+            "status_update": room_status,
             "character_update": character_update,
-            "naxt_state": next_state
+            "next_state": next_state
         }
     
     def _go_to(self, direction: str) -> dict:
@@ -161,12 +161,23 @@ class CombatState(GameState):
         result = {}
 
         if command == "attack":
-            response = self._attack()
+            result = self._attack()
         elif command.startswith("use "):
             consumable_item = command.removeprefix('use ').lower()
-            response = self._use(consumable_item)
+            result = self._use(consumable_item)
 
         response = result["game_response"]
+        if self.game_engine.is_in_combat():
+            monster_attack_result = self._monster_attack()
+            response += "\n\n" + monster_attack_result["game_response"]
+        elif self.game_engine.player.is_alive():
+            response += "\n\nYou have defeated the enemy!"
+            response += "\n\n" + self.game_engine.end_combat()
+            next_state = ExplorationState(self.game_engine)
+        else:
+            response += "\n\nYou have been defeated! Game Over."
+            next_state = GameOverState(self.game_engine)
+
         if "next_state" in result:
             next_state = result["next_state"] 
         # add available actions to response
@@ -177,7 +188,7 @@ class CombatState(GameState):
 
         return {
             "game_response": response,
-            "room_status": room_status,
+            "status_update": room_status,
             "character_update": character_update,
             "next_state": next_state
         }
@@ -193,6 +204,28 @@ class CombatState(GameState):
         return {
             "game_response": response
         }
+
+    def _monster_attack(self) -> dict:
+        response = self.game_engine.monster_attack()
+        return {
+            "game_response": response
+        }
+    
+class GameOverState(GameState):
+    def __init__(self, game_engine: 'GameEngine'):
+        super().__init__(game_engine)
+        self.available_actions = ["restart"]
+
+    def response_to_command(self, command: str) -> dict:
+        if command == "restart":
+            self.game_engine.__init__()  # Reset the game engine
+            next_state = NotStartedState(self.game_engine)
+            return {
+                "game_response": "Game restarted. Type 'start' to begin a new adventure.",
+                "next_state": next_state
+            }
+        else:
+            return {"game_response": "Invalid command. Type 'restart' to play again or 'exit' to quit."}
 
 class GameEngine:
     # states
@@ -247,6 +280,20 @@ class GameEngine:
         self.monsters = [ skeleton_monster, zombie_monster, goblin_monster, skeleton_monster, zombie_monster, skeleton_monster ]
         self.state = NotStartedState(self)
         self.enemy = None
+
+        self.loot_list = [
+            game.Armor("White Leather Armor", "leather armor"), 
+            game.HealthPotion("Small Health Potion", 10),
+            game.Weapon("Sword", "1d6"), 
+            game.Weapon("Dagger", "1d4"), 
+            game.HealthPotion("Small Health Potion", 10),
+            game.Weapon("Staff", "1d4"), 
+            game.Weapon("Mace", "1d6"), 
+            game.Weapon("Axe", "1d6"),
+            game.HealthPotion("Small Health Potion", 10),
+            game.HealthPotion("Medium Health Potion", 20),
+            game.ThrowingKnife("Throwing Knife", "2d4"),
+        ]
 
     def response_to_command(self, command: str) -> dict:
         command = command.strip().lower()
@@ -328,7 +375,32 @@ class GameEngine:
         
     def attack(self) -> str:
         damage = self.player.attack(self.enemy)
-        return f"You swing your weapon and deal {damage} damage!"
+        response = f"You swing your {self.player.equipments.weapon.name} and deal {damage} damage!"
+        if self.enemy.current_health <= 0:
+            response += f"\n\nThe {self.enemy.name} is defeated!"
+        return response
+    
+    def monster_attack(self) -> str:
+        if self.enemy.is_alive():
+            damage = self.enemy.attack(self.player)
+            return f"The {self.enemy.name} attacks you and deals {damage} damage!"
+        return ""
+    
+    def is_in_combat(self) -> bool:
+        if self.enemy and self.enemy.is_alive() and self.player.is_alive():
+            return True
+        return False
+    
+    def end_combat(self) -> str:
+        looted_items = game.loot_roll(self.loot_list)  # loot_roll returns a list of looted items
+        loot_gold = game.dice_roll(number_of_dice=5, sides_per_die=4)
+
+        response = f"The {self.enemy.name} dropped {looted_items} and {loot_gold} golds. Congrats!"
+        self.player.inventory.extend(looted_items) # add a list to another list
+        self.player.gold += loot_gold # gold = gold + loot_gold
+
+        self.enemy = None
+        return response
 
 """
         # This method will process the player's command based on the current game state
