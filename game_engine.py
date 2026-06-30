@@ -113,7 +113,6 @@ class ExplorationState(GameState):
 
         if self.game_engine.is_encounter():
             next_state = CombatState(self.game_engine)
-            self.game_engine.enemy = random.choice(self.game_engine.monsters)
             response += f"\n\nAs you enter the {self.game_engine.current_room}, you encounter a {self.game_engine.enemy.name}!"
 
         return {
@@ -170,6 +169,9 @@ class CombatState(GameState):
         if self.game_engine.is_in_combat():
             monster_attack_result = self._monster_attack()
             response += "\n\n" + monster_attack_result["game_response"]
+            if not self.game_engine.player.is_alive():
+                response += "\n\nYou have been defeated by the enemy...GAME OVER!"
+                next_state = GameOverState(self.game_engine)
         elif self.game_engine.player.is_alive():
             response += "\n\nYou have defeated the enemy!"
             response += "\n\n" + self.game_engine.end_combat()
@@ -387,9 +389,13 @@ class GameEngine:
         return ""
     
     def is_in_combat(self) -> bool:
-        if self.enemy and self.enemy.is_alive() and self.player.is_alive():
-            return True
-        return False
+        if self.player is None or self.enemy is None:
+            return False
+        if not self.player.is_alive():
+            return False
+        if not self.enemy.is_alive():
+            return False
+        return True
     
     def end_combat(self) -> str:
         looted_items = game.loot_roll(self.loot_list)  # loot_roll returns a list of looted items
