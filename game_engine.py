@@ -80,15 +80,20 @@ class ExplorationState(GameState):
             result = self._take(item)
         
         elif command.startswith('use '):
-            item = command.removeprefix('use ') 
+            item = command.removeprefix('use ')
             result = self._use(item)
         
         elif command == 'inventory':
             result = self._inventory()
         
         elif command.startswith('equip '):
-            equip_item = command.removeprefix('equip ').lower()
+            equip_item = command.removeprefix('equip ')
             result = self._equip(equip_item)
+        
+        else:
+            return {
+                "game_response": "Invalid command. Please choose a valid action.\n\n" + self.get_available_actions()
+            }
         
         response = result["game_response"]
         if "next_state" in result:
@@ -164,6 +169,12 @@ class CombatState(GameState):
         elif command.startswith("use "):
             consumable_item = command.removeprefix('use ').lower()
             result = self._use(consumable_item)
+        elif command == "dodge":
+            result = self._dodge()
+        else:
+            return {
+                "game_response": "Invalid command. Please choose a valid action.\n\n" + self.get_available_actions()
+            }
 
         response = result["game_response"]
         if self.game_engine.is_in_combat():
@@ -203,6 +214,13 @@ class CombatState(GameState):
     
     def _use(self, consumable_item) -> dict:
         response = self.game_engine.use(consumable_item)
+        return {
+            "game_response": response
+        }
+    
+    def _dodge(self) -> dict:
+        # Implement dodge logic here
+        response = self.game_engine.dodge()
         return {
             "game_response": response
         }
@@ -297,6 +315,8 @@ class GameEngine:
             game.ThrowingKnife("Throwing Knife", "2d4"),
         ]
 
+        self.has_dodged = False  # Track if the player has dodged in the current combat round
+
     def response_to_command(self, command: str) -> dict:
         command = command.strip().lower()
         result = self.state.response_to_command(command)
@@ -382,10 +402,21 @@ class GameEngine:
             response += f"\n\nThe {self.enemy.name} is defeated!"
         return response
     
+    def dodge(self) -> str:
+        self.has_dodged = self.player.dodge()
+        if self.has_dodged:
+            return "You successfully dodged the enemy's attack!"
+        else:
+            return "You failed to dodge!"
+    
     def monster_attack(self) -> str:
         if self.enemy.is_alive():
-            damage = self.enemy.attack(self.player)
-            return f"The {self.enemy.name} attacks you and deals {damage} damage!"
+            if self.has_dodged:
+                self.has_dodged = False  # Reset dodge status for the next round
+                return ""
+            else:
+                damage = self.enemy.attack(self.player)
+                return f"The {self.enemy.name} attacks you and deals {damage} damage!"
         return ""
     
     def is_in_combat(self) -> bool:
