@@ -156,7 +156,7 @@ class ExplorationState(GameState):
 class CombatState(GameState):
     def __init__(self, game_engine: 'GameEngine'):
         super().__init__(game_engine)
-        self.available_actions = ["attack", "use [consumable]", "dodge", "spell", "skill"]
+        self.available_actions = ["attack", "use [consumable]", "dodge", "cast-spell [Spell]", "use-skill [Skill]"]
 
     def response_to_command(self, command: str) -> dict:
         # Handle combat commands
@@ -171,6 +171,12 @@ class CombatState(GameState):
             result = self._use(consumable_item)
         elif command == "dodge":
             result = self._dodge()
+        elif command.startswith("cast-spell "):
+            spell_name = command.removeprefix('cast-spell ').strip()
+            result = self._cast_spell(spell_name)
+        elif command.startswith("use-skill "):
+            skill_name = command.removeprefix('use-skill ').strip()
+            result = self._use_skill(skill_name)
         else:
             return {
                 "game_response": "Invalid command. Please choose a valid action.\n\n" + self.get_available_actions()
@@ -197,7 +203,7 @@ class CombatState(GameState):
         response += "\n\n" + next_state.get_available_actions()
         response += "\n\nWhat do you want to do?"
         character_update = self.game_engine.player.get_status()
-        room_status = self.game_engine.get_room_status()
+        room_status = self.game_engine.get_combat_status()
 
         return {
             "game_response": response,
@@ -208,6 +214,18 @@ class CombatState(GameState):
     
     def _attack(self) -> dict:
         response = self.game_engine.attack()
+        return {
+            "game_response": response
+        }
+    
+    def _cast_spell(self, spell_name: str) -> dict:
+        response = self.game_engine.cast_spell(spell_name)
+        return {
+            "game_response": response
+        }
+    
+    def _use_skill(self, skill_name: str) -> dict:
+        response = self.game_engine.use_skill(skill_name)
         return {
             "game_response": response
         }
@@ -318,7 +336,7 @@ class GameEngine:
         self.has_dodged = False  # Track if the player has dodged in the current combat round
 
     def response_to_command(self, command: str) -> dict:
-        command = command.strip().lower()
+        command = command.strip()
         result = self.state.response_to_command(command)
         if "next_state" in result:
             self.state = result["next_state"]
@@ -333,6 +351,11 @@ class GameEngine:
         # learn a starting skill
         power_strike_skill = game.Skill("Power Strike", "2d6", 150)
         self.player.learn_skill(power_strike_skill)
+
+    def get_combat_status(self) -> str:
+        combat_status = f"You are in combat with a {self.enemy.name} in the {self.current_room}."
+        combat_status += f"\n\nEnemy Health: {self.enemy.current_health}/{self.enemy.max_health}"
+        return combat_status
 
     def get_room_status(self) -> str:
         room_status = f"You are in the {self.current_room}.\n\n{self.rooms[self.current_room]['description']}"
@@ -438,7 +461,31 @@ class GameEngine:
 
         self.enemy = None
         return response
+    
+    def cast_spell(self, spell_name: str) -> str:
+        if self.player.has_learned_spell():
+            return self.player.cast_spell(spell_name, self.enemy)
+        else:
+            return "You haven't learnt any spell yet."
 
+    def use_skill(self, skill_name: str) -> str:
+        if self.player.has_learned_skill():
+            return self.player.use_skill(skill_name, self.enemy)
+        else:
+            return "You haven't learnt any skill yet."
+
+        #                 elif action == 'spell':
+        #     if player.spells[0] is not None or player.spells[1] is not None or player.spells[2] is not None:
+        #         spell_name = input("Enter the spell name to cast: ").strip()
+        #         player.cast_spell(spell_name, monster)
+        #     else:
+        #         print("You haven't learnt any spell yet.")
+        # elif action == 'skill':
+        #     if player.skills[0] is not None or player.skills[1] is not None or player.skills[2] is not None:
+        #         skill_name = input("Enter the skill name to use: ").strip()
+        #         player.use_skill(skill_name, monster)
+        #     else:
+        #         print("You haven't learnt any skill yet.")
 """
         # This method will process the player's command based on the current game state
         if self.state == self.NOT_STARTED:

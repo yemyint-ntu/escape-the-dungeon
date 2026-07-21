@@ -236,8 +236,14 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
         for spell in self.spells:
             if spell is not None and spell_name == spell.name:
                 # implement spell casting logic
-                spell.cast(enemy)
-                break
+                return spell.cast(enemy)
+        return f"You haven't learned the spell: {spell_name}."
+
+    def has_learned_spell(self) -> bool:
+        return any(spell is not None for spell in self.spells)
+    
+    def has_learned_skill(self) -> bool:
+        return any(skill is not None for skill in self.skills)
 
     def learn_skill(self, skill):
         for i in range(len(self.skills)):
@@ -249,12 +255,13 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
                 return
         print("You cannot learn more skills. Skill slots are full.")
 
-    def use_skill(self, skill_name, enemy):
+    def use_skill(self, skill_name, enemy) -> str:
         for skill in self.skills:
             if skill is not None and skill_name == skill.name:
                 # implement skill usage logic
-                skill.use(enemy)
-                break
+                return skill.use(enemy)
+        return f"You haven't learned the skill: {skill_name}."
+
 
     def get_status(self):
         stats = f"**{self.name}** - {self.character_class}\n\n"
@@ -287,12 +294,12 @@ class Spell:
         self.damage_dice = damage_dice
         self.mana_cost = mana_cost
 
-    def cast(self, enemy):
+    def cast(self, enemy) -> str:
         sides_per_die = int(self.damage_dice.split('d')[1]) # 2d6 -> 6
         number_of_dice = int(self.damage_dice.split('d')[0]) # 2d6 -> 2
         damage = dice_roll(sides_per_die, number_of_dice)
         enemy.current_health -= damage
-        print(f"You cast {self.name} and deal {damage} damage to {enemy.name}.")
+        return f"You cast {self.name} and deal {damage} damage to {enemy.name}."
 
 class Skill:
     def __init__(self, name, damage_dice, stamina_cost):
@@ -300,12 +307,12 @@ class Skill:
         self.damage_dice = damage_dice
         self.stamina_cost = stamina_cost
 
-    def use(self, enemy):
+    def use(self, enemy) -> str:
         sides_per_die = int(self.damage_dice.split('d')[1]) # 2d6 -> 6
         number_of_dice = int(self.damage_dice.split('d')[0]) # 2d6 -> 2
         damage = dice_roll(sides_per_die, number_of_dice)
         enemy.current_health -= damage
-        print(f"You use {self.name} and deal {damage} damage to {enemy.name}.")
+        return f"You use {self.name} and deal {damage} damage to {enemy.name}."
 
 def dice_roll(sides_per_die, number_of_dice=1): # function definition
     total = 0
