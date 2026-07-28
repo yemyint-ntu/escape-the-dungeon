@@ -25,6 +25,7 @@ class GameState:
 class NotStartedState(GameState):
     def __init__(self, game_engine: 'GameEngine'):
         super().__init__(game_engine)
+        self.game_engine.init_map()
         self.available_actions = ["start"]
 
     def response_to_command(self, command: str) -> dict:
@@ -167,7 +168,7 @@ class CombatState(GameState):
         if command == "attack":
             result = self._attack()
         elif command.startswith("use "):
-            consumable_item = command.removeprefix('use ').lower()
+            consumable_item = command.removeprefix('use ')
             result = self._use(consumable_item)
         elif command == "dodge":
             result = self._dodge()
@@ -203,7 +204,10 @@ class CombatState(GameState):
         response += "\n\n" + next_state.get_available_actions()
         response += "\n\nWhat do you want to do?"
         character_update = self.game_engine.player.get_status()
-        room_status = self.game_engine.get_combat_status()
+        if isinstance(next_state, CombatState):
+            room_status = self.game_engine.get_combat_status()
+        else:
+            room_status = self.game_engine.get_room_status()
 
         return {
             "game_response": response,
@@ -274,8 +278,7 @@ class GameEngine:
     COMPLETED = "completed"
     GAME_OVER = "game_over"
 
-    def __init__(self):
-        self.player = None
+    def init_map(self):
         self.current_room = 'Cell'
         self.rooms = {
             'Cell': {
@@ -301,6 +304,10 @@ class GameEngine:
                 'west': 'Armory'
             }
         }
+
+    def __init__(self):
+        self.player = None
+        self.init_map()
         
         # Monsters
         skeleton_monster = game.NonplayerCharacter("skeleton", "Undead", game.Attribute(4, 2, 0))

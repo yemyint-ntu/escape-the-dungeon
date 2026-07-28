@@ -22,6 +22,11 @@ class Item:
 class QuestItem(Item):
     def __init__(self, name):
         super().__init__(name)
+        self.is_used = False
+
+    def use(self, character):
+        if not self.is_used:
+            self.is_used = True
 
 class Consumable(Item):
     def __init__(self, name, effect, amount):
@@ -115,8 +120,13 @@ class Character:
     def attack(self, enemy):
         damage = self.attributes.strength + self.equipments.weapon.get_damage()
         damage = damage - enemy.get_armor_value()
-        enemy.current_health = enemy.current_health - damage
+        enemy.take_damage(damage)
         return damage
+
+    def take_damage(self, damage):
+        self.current_health -= damage
+        if self.current_health < 0:
+            self.current_health = 0
     
     def dodge(self):
         dodge_chance = self.attributes.agility * 5
@@ -169,17 +179,16 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
 
     def is_in_inventory(self, item_name):
         for item in self.inventory:
-            if item.name.lower() == item_name:
+            if item.name.lower() == item_name.lower():
                 return True
         return False
     
     def use_item(self, item_name):
         for index, item in enumerate(self.inventory):
             if item.name.lower() == item_name.lower():
-                if isinstance(item, Consumable):
+                if isinstance(item, Consumable) or isinstance(item, QuestItem):
                     item.use(self)
-
-                del self.inventory[index]
+                    del self.inventory[index]
                 break
 
     def unequip_armor(self):
