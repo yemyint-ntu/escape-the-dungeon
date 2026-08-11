@@ -3,8 +3,30 @@ import random
 import game_engine
 
 from textual.app import App, ComposeResult, on
-from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
-from textual.widgets import Header, Footer, Input, Markdown, Button
+from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll, Grid
+from textual.widgets import Header, Footer, Input, Markdown, Button, Label
+from textual.screen import ModalScreen
+
+class QuitScreen(ModalScreen[bool]):
+    DEFAULT_CSS = """
+    QuitScreen {
+        align: center middle;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Grid(
+            Label("Are you sure you want to quit?", id="question"),
+            Button("Quit", variant="error", id="quit"),
+            Button("Cancel", variant="primary", id="cancel"),
+            id="dialog",      
+        )
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "quit":
+            self.dismiss(True)
+        else:
+            self.dismiss(False)
 
 class TextAdventureApp(App):
 
@@ -24,6 +46,12 @@ class TextAdventureApp(App):
     def on_mount(self) -> None:
         # set focus to input when the app starts
         self.query_one("#command-input").focus()
+        # for testing purposes
+        def check_quit(result: bool | None) -> None:
+            if result:
+                self.exit()
+
+        self.push_screen(QuitScreen(), check_quit)
 
     @on(Input.Submitted, "#command-input")
     def handle_command(self, event: Input.Submitted) -> None:
