@@ -4,7 +4,7 @@ import game_engine
 
 from textual.app import App, ComposeResult, on
 from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll, Grid
-from textual.widgets import Header, Footer, Input, Markdown, Button, Label
+from textual.widgets import Header, Footer, Input, Markdown, Button, Label, ListView, ListItem
 from textual.screen import ModalScreen
 
 class QuitScreen(ModalScreen[bool]):
@@ -27,6 +27,50 @@ class QuitScreen(ModalScreen[bool]):
             self.dismiss(True)
         else:
             self.dismiss(False)
+
+class CharacterCreationScreen(ModalScreen[bool]):
+    DEFAULT_CSS = """
+    Grid {
+        align: center middle;
+    }
+
+    VerticalGroup {
+        align: center middle;
+    }
+
+    ListView {
+        width: 30;
+        height: auto;
+        margin: 2 2;
+    }
+
+    Label {
+        padding: 1 2;
+    }
+
+    Button {
+        margin: 2;
+        align: center middle;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Grid(
+            VerticalGroup(
+                Label("Choose your class:", id="question"),
+                ListView(
+                    ListItem(Label("Warrior (High Strength)")),
+                    ListItem(Label("Rogue (High Agility)")),
+                    ListItem(Label("Mage (Magic User)")),
+                )
+            ),
+            Button("OK", variant="primary", id="ok"),
+            id="dialog",
+        )
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "ok":
+            self.dismiss(True)
 
 class TextAdventureApp(App):
 
@@ -81,6 +125,9 @@ class TextAdventureApp(App):
         if "character_update" in response:
             character_sheet_window = self.query_one("#character-stats")
             character_sheet_window.update(response["character_update"])
+
+        if "next_state" in response and isinstance(response["next_state"], game_engine.CharacterCreationState):
+            self.push_screen(CharacterCreationScreen())
 
     def update_history(self, command_text: str, response: str) -> None:
         # get the history scroll container
