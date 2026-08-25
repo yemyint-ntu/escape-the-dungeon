@@ -33,7 +33,7 @@ class NotStartedState(GameState):
             response = "Welcome to Escape the Dungeon! Your adventure begins now..."
             # transition to character creation state
             next_state = CharacterCreationState(self.game_engine)
-            self.game_engine.create_player()
+            # self.game_engine.create_player()
 
             ## go to exploration state after character creation
             # next_state = ExplorationState(self.game_engine)
@@ -43,12 +43,12 @@ class NotStartedState(GameState):
             response += "\n\n" + next_state.get_available_actions()
             response += "\n\nWhat do you want to do?"
 
-            character_update = self.game_engine.player.get_status()
+            # character_update = self.game_engine.player.get_status()
 
             return {
                 "game_response": response,
                 # "status_update": room_status,
-                "character_update": character_update,
+                # "character_update": character_update,
                 "next_state": next_state
             }
         else:
@@ -350,9 +350,9 @@ class GameEngine:
             self.state = result["next_state"]
         return result
     
-    def create_player(self):
+    def create_player(self, name: str, character_class: str):
         # default character creation for now, can be expanded to allow player choice later
-        self.player = game.PlayerCharacter("Adventurer", "Warrior", game.Attribute(8, 4, 2))
+        self.player = game.PlayerCharacter(name, character_class, game.Attribute(8, 4, 2))
         self.player.equip_armor(game.Armor("chainmail armor", "chainmail"))
         self.player.equip_weapon(game.Weapon("longsword", "1d8"))
 

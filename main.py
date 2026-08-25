@@ -57,20 +57,26 @@ class CharacterCreationScreen(ModalScreen[bool]):
     def compose(self) -> ComposeResult:
         yield Grid(
             VerticalGroup(
-                Label("Choose your class:", id="question"),
+                Label("What is your name, brave adventurer?", id="name-question"),
+                Input(placeholder="Enter your name here...", id="name-input"),
+                Label("Choose your class:", id="class-question"),
                 ListView(
-                    ListItem(Label("Warrior (High Strength)")),
-                    ListItem(Label("Rogue (High Agility)")),
-                    ListItem(Label("Mage (Magic User)")),
-                )
+                    ListItem(Label("Warrior (High Strength)"), name="Warrior"),
+                    ListItem(Label("Rogue (High Agility)"), name="Rogue"),
+                    ListItem(Label("Mage (Magic User)"), name="Mage"),
+                    id="selected-class",
+                ),
+                Button("OK", variant="primary", id="ok"),
             ),
-            Button("OK", variant="primary", id="ok"),
             id="dialog",
         )
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "ok":
-            self.dismiss(True)
+            self.dismiss({
+                    "name": self.query_one("#name-input").value,
+                    "class": self.query_one("#selected-class").highlighted_child.name,
+                })
 
 class TextAdventureApp(App):
 
@@ -86,6 +92,15 @@ class TextAdventureApp(App):
             SidebarWindow()
         )
         yield Footer()
+
+    def handle_character_creation(self, result: dict | None) -> None:
+        if result:
+            name = result["name"]
+            character_class = result["class"]
+            self.game_engine.create_player(name, character_class)
+            self.update_history(f"> **Character created: {name} ({character_class})**\n\n", "Welcome to Escape the Dungeon!")
+        else:
+            self.update_history("> **Character creation cancelled.**\n\n", "")
 
     def on_mount(self) -> None:
         # set focus to input when the app starts
@@ -127,7 +142,7 @@ class TextAdventureApp(App):
             character_sheet_window.update(response["character_update"])
 
         if "next_state" in response and isinstance(response["next_state"], game_engine.CharacterCreationState):
-            self.push_screen(CharacterCreationScreen())
+            self.push_screen(CharacterCreationScreen(), self.handle_character_creation)
 
     def update_history(self, command_text: str, response: str) -> None:
         # get the history scroll container
