@@ -98,7 +98,17 @@ class TextAdventureApp(App):
             name = result["name"]
             character_class = result["class"]
             self.game_engine.create_player(name, character_class)
-            self.update_history(f"> **Character created: {name} ({character_class})**\n\n", "Welcome to Escape the Dungeon!")
+            
+            response = self.game_engine.response_to_command("")
+            self.update_history(f"> **Character created**\n\n", response["game_response"])
+            if "status_update" in response:
+                status_window = self.query_one("#status")
+                status_window.update(response["status_update"])
+            
+            # if there is a character update, update the character sheet window
+            if "character_update" in response:
+                character_sheet_window = self.query_one("#character-stats")
+                character_sheet_window.update(response["character_update"])
         else:
             self.update_history("> **Character creation cancelled.**\n\n", "")
 
@@ -106,11 +116,11 @@ class TextAdventureApp(App):
         # set focus to input when the app starts
         self.query_one("#command-input").focus()
         # for testing purposes
-        def check_quit(result: bool | None) -> None:
-            if result:
-                self.exit()
+        # def check_quit(result: bool | None) -> None:
+            # if result:
+                # self.exit()
 
-        self.push_screen(QuitScreen(), check_quit)
+        # self.push_screen(QuitScreen(), check_quit)
 
     @on(Input.Submitted, "#command-input")
     def handle_command(self, event: Input.Submitted) -> None:
