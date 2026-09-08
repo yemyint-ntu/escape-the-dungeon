@@ -30,12 +30,23 @@ class QuitScreen(ModalScreen[bool]):
 
 class CharacterCreationScreen(ModalScreen[bool]):
     DEFAULT_CSS = """
-    Grid {
+    CharacterCreationScreen {
         align: center middle;
+    }
+
+    #dialog {
+        width: 60;
+        height: auto;
+        border: thick $background 80%;
+        background: $surface;
     }
 
     VerticalGroup {
         align: center middle;
+    }
+
+    #name-input {
+        width: 30;
     }
 
     ListView {
@@ -49,7 +60,7 @@ class CharacterCreationScreen(ModalScreen[bool]):
     }
 
     Button {
-        margin: 2;
+        margin: 1;
         align: center middle;
     }
     """

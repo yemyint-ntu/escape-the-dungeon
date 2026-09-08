@@ -213,7 +213,7 @@ class PlayerCharacter(Character): # inheritance - parent class is Character
 
     def equip(self, item_name) -> bool:
         for index, item in enumerate(self.inventory):
-            if item.name.lower() == item_name:
+            if item.name.lower() == item_name.lower():
                 if isinstance(item, Weapon):
                     self.unequip_weapon()
                     del self.inventory[index]
