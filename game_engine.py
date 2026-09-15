@@ -1,16 +1,8 @@
-from click import command
-
+from enum import Enum
 import game
 import random
 
 class GameState:
-    NOT_STARTED = "not_started"
-    CHAR_CREATION = "character_creation"
-    EXPLORATION = "exploration"
-    COMBAT = "combat"
-    COMPLETED = "completed"
-    GAME_OVER = "game_over"
-
     def __init__(self, game_engine: 'GameEngine'):
         self.game_engine = game_engine
         self.available_actions = []
@@ -268,17 +260,53 @@ class GameOverState(GameState):
         else:
             return {"game_response": "Invalid command. Type 'restart' to play again or 'exit' to quit."}
 
+
+class Room:
+    def __init__(self, description: str, item: str = None, encounter: bool = False, entry_event: callable = None):
+        self.description = description
+        self.item = item
+        self.encounter = encounter
+        self.connections = {}
+        self.locked = False
+        self.entry_event = entry_event
+
+    def connect(self, direction: str, room: 'Room'):
+        self.connections[direction] = room
+
+    def trigger_entry_event(self, player):
+        if self.entry_event:
+            self.entry_event(player)
+
+class Direction(Enum):
+    NORTH = 'north'
+    SOUTH = 'south'
+    EAST = 'east'
+    WEST = 'west'
+
 class GameEngine:
-    # states
-    NOT_STARTED = "not_started"
-    CHAR_CREATION = "character_creation"
-    EXPLORATION = "exploration"
-    COMBAT = "combat"
-    COMPLETED = "completed"
-    GAME_OVER = "game_over"
+    def connect_rooms(self, to_room: Room, direction: str, from_room: Room):
+        from_room.connect(direction, to_room)
+        # Optionally, connect the reverse direction if needed
+        reverse_directions = {
+            Direction.NORTH: Direction.SOUTH,
+            Direction.SOUTH: Direction.NORTH,
+            Direction.EAST: Direction.WEST,
+            Direction.WEST: Direction.EAST
+        }
+        if direction in reverse_directions:
+            to_room.connect(reverse_directions[direction], from_room)
 
     def init_map(self):
         self.current_room = 'Cell'
+        prison_cell = Room(description='A cold, dark cell. The door is locked.', item='key')
+        hallway = Room(description='A dim hallway. A heavy gate blocks the north path.', encounter=True)
+        armory = Room(description='A room full of rusty weapons and a glowing staff.', item='magic staff', encounter=True)
+        dungeon_exit = Room(description='A magical door that needs a spell to open.')
+
+        self.connect_rooms(prison_cell, Direction.EAST, hallway)
+        self.connect_rooms(hallway, Direction.NORTH, armory)
+        self.connect_rooms(armory, Direction.EAST, dungeon_exit)
+
         self.rooms = {
             'Cell': {
                 'description': 'A cold, dark cell. The door is locked.',
